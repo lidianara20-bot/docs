@@ -1,97 +1,1892 @@
----
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
----
 
-## Setting up
 
-Get your documentation site up and running in minutes.
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Operações 5.7.7</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); transition: all 0.2s; }
+        .card-interactive:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: #94a3b8; cursor: pointer; }
+        .nav-link { display: flex; align-items: center; padding: 12px 16px; border-radius: 8px; color: #94a3b8; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .nav-link:hover { background-color: #1e293b; color: white; }
+        .nav-link.active { background-color: #3b82f6; color: white; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5); }
+        .nav-link.hidden-link { display: none !important; } /* Classe específica para esconder links */
+        
+        .input-field { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; font-size: 0.875rem; }
+        .input-field:focus { outline: none; border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        .app-view.hidden { display: none !important; }
+        .app-view { min-height: 100%; } 
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .mobile-card { border-left: 4px solid #e2e8f0; }
+        .mobile-card.filled { border-left-color: #22c55e; background-color: #f0fdf4; }
+        .schedule-tab-btn.active { background-color: #fff; border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+        
+        /* Calendário Styles */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; }
+        .calendar-header { background-color: #e2e8f0; font-weight: 600; text-align: center; padding: 8px 4px; border-radius: 6px 6px 0 0; font-size: 0.75rem; color: #475569; }
+        .day-cell { padding: 8px 4px; border: 1px solid #f1f5f9; background: white; min-height: 100px; display: flex; flex-direction: column; cursor: pointer; transition: background-color 0.1s; }
+        .day-cell:hover { background-color: #f8fafc; }
+        .day-cell.selected { background-color: #e0f2fe; border-color: #0ea5e9; border-width: 2px; }
+        .day-num { font-weight: 700; font-size: 1.1rem; color: #1e293b; margin-bottom: 4px; }
+        .shift-label { font-size: 0.7rem; font-weight: 500; padding: 1px 4px; margin-top: 2px; border-radius: 4px; text-align: center; line-height: 1.2; }
+        .shift-folga { background-color: #cbd5e1; color: #64748b; }
+        .shift-t1 { background-color: #fffbeb; color: #f59e0b; } 
+        .shift-t2 { background-color: #d1fae5; color: #059669; } 
+        .shift-t3 { background-color: #eff6ff; color: #2563eb; } 
+        
+        .collab-item {
+            cursor: pointer; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 500; transition: background-color 0.15s; display: flex; justify-content: space-between; align-items: center;
+        }
+        .collab-item:hover { background-color: #f0f9ff; color: #1e40af; }
+        .collab-item.active { background-color: #3b82f6; color: white; font-weight: 600; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1); }
+        .collab-item.active .collab-team { background-color: #fff; color: #3b82f6; }
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+        /* --- LAYOUT RESPONSIVO CORRIGIDO --- */
+        .sidebar {
+            position: fixed; top: 0; bottom: 0; left: 0; height: 100vh; width: 256px; z-index: 50;
+            transition: transform 0.3s ease-in-out; background-color: #0f172a; color: white;
+        }
+        .toggle-button {
+            position: fixed; top: 15px; left: 15px; z-index: 60; background: #3b82f6; color: white;
+            padding: 10px; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: left 0.3s ease-in-out, background 0.2s; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+        }
+        @media (max-width: 767px) {
+            .sidebar { transform: translateX(-100%); box-shadow: none; }
+            .sidebar.mobile-open { transform: translateX(0); box-shadow: 5px 0 25px rgba(0,0,0,0.5); }
+            .main-content { margin-left: 0 !important; width: 100%; }
+        }
+        @media (min-width: 768px) {
+            .sidebar { transform: translateX(-256px); }
+            .sidebar:not(.collapsed) { transform: translateX(0); }
+            .sidebar:not(.collapsed) + .toggle-button { left: 15px; }
+        }
+        
+        /* Estilos para os botões de Linha */
+        .line-btn {
+            display: flex; align-items: center; justify-content: center; padding: 12px 16px; 
+            border-radius: 8px; font-weight: 700; transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
+        }
+        .line-btn.active {
+            border-color: #1f2937;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+        }
+        .line-btn-yellow {
+            background-color: #fde047; /* yellow-300 */
+            color: #451a03; /* amber-950 */
+        }
+        .line-btn-white {
+            background-color: #e5e7eb; /* gray-200 */
+            color: #1f2937; /* gray-800 */
+        }
+        .line-btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+        /* Estilo para o container de cards oculto por padrão */
+        .tags-container {
+            min-height: 400px; /* Garante que a área não encolha demais */
+        }
+        
+        /* Estilos da tabela de Frota na aba Informações */
+        .frota-row {
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: 500;
+        }
+        .frota-row:hover {
+            background-color: #f1f5f9;
+        }
+        .linha-amarela {
+            background-color: #fffbeb !important; /* yellow-50 */
+            border-left: 4px solid #f59e0b; /* amber-500 */
+        }
+        .frota-detail-row {
+            background-color: #f8fafc;
+        }
+        .frota-detail-row td {
+            padding: 8px 0px 8px 16px;
+        }
+        .frota-tag-list {
+            list-style-type: disc;
+            padding-left: 20px;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+        .rotated-icon {
+            transition: transform 0.2s;
+        }
+        .rotated-icon.expanded {
+            transform: rotate(90deg);
+        }
+    </style>
+    <script>
+        const __firebase_config = JSON.stringify({ apiKey: "AIzaSyAuazNvf3PaD9_5C8DlR3WtOSl3rUPU0Tw", authDomain: "painel-de-controle-26040.firebaseapp.com", projectId: "painel-de-controle-26040", storageBucket: "painel-de-controle-26040.firebasestorage.app", messagingSenderId: "916754475226", appId: "1:916754475226:web:139a6af5abc6bf92666d3" });
+        const __app_id = "operacoes-mecanizadas";
 
-## Make it yours
+        const listaEquipamentos = [
+            "CA321", "CA337", "CA338", "CA340", "CA318",
+            "CC310", "CC329", "CC330", "CC341", "CC354",
+            "CH01 HOLCIM", "CH02 HOLCIM", "CH304", "CH332", "CH342", "CH343",
+            "CV300", "CV336", "CV344", "CV345", "CV346", "CV347", "CV348",
+            "MC003", "MC81", "MC86", "MC97", "MC98", "MC120",
+            "ME003", "ME43", "ME115",
+            "RT52", "RT53", "RT212", "RT213"
+        ].sort();
 
-Design a docs site that looks great and empowers your users.
+        const equipmentOptions = listaEquipamentos.map(e => `<option value="${e}">${e}</option>`).join('');
+        
+        const listaStatusNaoAlocados = [
+            "Disponível", "Férias", "Atestado", "Folga", "Falta", 
+            "Afastado", "Turno", "Periódico"
+        ].sort();
+        
+        const statusOptionsHTML = listaStatusNaoAlocados.map(s => `<option value="${s}">${s}</option>`).join('');
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, serverTimestamp, query, where, writeBatch, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+        // Variáveis para as TAGs das Linhas
+        const TAGS_LINHA_AMARELA = ["MC01", "MC02", "MC03", "MC04", "MC120", "ME01", "ME02", "RT02", "RT03", "RT EVENTUAL 02"];
+        // CA alta pressão, CH hipervácuo, CV sucção e CJ Jabuali
+        const TAGS_LINHA_BRANCA = ["CA01", "CA02", "CA03", "CA04", "CA05", "CC01", "CC02", "CH01", "CH02", "CJ01", "CV01", "CV02", "CV03", "CV04", "CV05", "CV06", "CV07"]; 
+        
+        // URLs das Imagens Fornecidas pelo Usuário
+        const ICON_MINI_ESCAVADEIRA = "uploaded:mini-escavadeira.png-47e1d813-eda6-4319-8688-b527af0b15d7";
+        const ICON_CAMINHAO_TANQUE = "uploaded:caminhao-tanque.png-e9994a22-0033-458e-950c-f5cea5e7df54";
+        
+        const equipes = {
+            'A': ["GLEISON JOSE DE ASSIS", "PAULO AUGUSTO FERREIRA BAETA", "WILSON DOS SANTOS LONGUINHO", "LINDOMAR EVANGELISTA", "GLAISON GESNER FERREIRA", "FELIPE AUGUSTO ROCHA ARAUJO", "WELLINGTON CLEITON MESQUITA GALVAO"],
+            'B': ["PAULO MARCELINO VIEIRA", "JOSE APARECIDO DA SILVA", "MAURICIO ALEXANDRE DE LIMA", "JORGE LUIS ELIAS", "JOSEMAR BEZERRA DA SILVA", "JEFERSON DOS SANTOS VIANA", "JAKSON JUNIOR AMANCIO"],
+            'C': ["LOURISVAL NUNES DE OLIVEIRA", "HELVECIO EFIGENIO SEVERINO", "LEANDRO ANTONIO VIEIRA", "JULIO MEDRANO EQUEZ JUNIOR", "JOSE VALTER DA SILVA", "VANDO MENDES DE OLIVEIRA FERNA", "GLEISON RODRIGUES ARCANJO"],
+            'D': ["VALTER DO CARMO", "HERMINIO FERNANDES VIERA", "ARLINDO JERONIMO DA SILVA", "CARLOS GONZAGA DOS SANTOS", "RODRIGO PEREIRA", "PAULO CARDOSO PEREIRA", "EDSON DE OLIVEIRA GONCALVES"]
+        };
+        
+        const motoristasCombinado = new Set([
+            "GLAISON GESNER FERREIRA", "FELIPE AUGUSTO ROCHA ARAUJO", "WELLINGTON CLEITON MESQUITA GALVAO",
+            "JOSEMAR BEZERRA DA SILVA", "JEFERSON DOS SANTOS VIANA", "JAKSON JUNIOR AMANCIO",
+            "JOSE VALTER DA SILVA", "VANDO MENDES DE OLIVEIRA FERNA", "GLEISON RODRIGUES ARCANJO",
+            "RODRIGO PEREIRA", "PAULO CARDOSO PEREIRA", "EDSON DE OLIVEIRA GONCALVES"
+        ].map(n => n.toUpperCase()));
 
-## Create beautiful pages
+        const colaboradoresFixos = [
+            { nome: 'ADILSON JOSE PEIXOTO', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'ALEX DOUGLAS BARBOSA', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'ALEXANDRE HENRIQUE GONCALVES', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'ALINE CRISTIANE DOS SANTOS', funcao: 'OPERADOR DE MINICARREGADEIRA/VARREDEIRA' },
+            { nome: 'ALLYSON FRANCISCO DUTRA MOREIRA', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'ANDRÉ HENRIQUES', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'ARLINDO JERONIMO DA SILVA', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'CARLOS GONZAGA DOS SANTOS', funcao: 'JATISTA SPOT' },
+            { nome: 'CÁSSIO RUBENS', funcao: 'JATISTA SPOT' }, { nome: 'CÉLIO DAVID', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I' },
+            { nome: 'CLAUDIO NEIVA RIBEIRO', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I' }, { nome: 'DEVANIO SANDER DE MARSELHA', funcao: 'MOTORISTA DE CAMINHAO' },
+           , { nome: 'DIOGO LIMA FERNANDES', funcao: 'JATISTA SPOT' },
+            { nome: 'DJALMA TEODORO DA SILVA FILHO', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'EDSON DE OLIVEIRA GONCALVES', funcao: 'JATISTA' },
+            { nome: 'ENIVALDO ALEXANDRE MENDES', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I' }, { nome: 'ERICK LEANDRO DE LIMA CAMPOS LADISLAU', funcao: 'JATISTA SPOT' },
+            { nome: 'FELIPE AUGUSTO ROCHA ARAUJO', funcao: 'JATISTA' }, { nome: 'FERNANDA PATRICIA NOGUEIRA DIA', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'GILMAR ALVES DE OLIVEIRA', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'GIOVANI ANTONIO MARTINS', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I' },
+            { nome: 'GISLENE ALMEIDA DA CRUZ', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I' }, { nome: 'GLAISON GESNER FERREIRA', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'GLEISON JOSE DE ASSIS', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'GLEISON RODRIGUES ARCANJO', funcao: 'JATISTA' },
+            { nome: 'HELVECIO EFIGENIO SEVERINO', funcao: 'JATISTA SPOT' }, { nome: 'HERMINIO FERNANDES VIERA', funcao: 'JATISTA SPOT' },
+            { nome: 'HUMBERTO HENRIQUE SIDNEI', funcao: 'OFICIAL DE LIMPEZA INDUSTRIAL' }, { nome: 'ITAMAR RAIMUNDO XAVIER', funcao: 'JATISTA' },
+            { nome: 'IVANILSON DIAS FRANCISCO', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'JAKSON JUNIOR AMANCIO', funcao: 'JATISTA' },
+            { nome: 'JAQUELINE LUCIA CORREA DA CRUZ', funcao: 'OFICIAL DE LIMPEZA INDUSTRIAL' }, { nome: 'JEFERSON DOS SANTOS VIANA', funcao: 'JATISTA' },
+            { nome: 'JORGE LUIS ELIAS', funcao: 'JATISTA SPOT' }, { nome: 'JOSE APARECIDO DA SILVA', funcao: 'JATISTA SPOT' },
+            { nome: 'JOSE VALTER DA SILVA', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'JOSEMAR BEZERRA DA SILVA', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'JOSIMAR PAULO DA SILVA', funcao: 'OFICIAL DE LIMPEZA INDUSTRIAL' }, { nome: 'JOSUE JUNIOR VALENTIM', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'JULIO CESAR PEREIRA', funcao: 'JATISTA' }, { nome: 'JULIO MEDRANO EQUEZ JUNIOR', funcao: 'JATISTA SPOT' },
+            { nome: 'JUSCILEIA ALMEIDA SANTOS', funcao: 'OFICIAL DE LIMPEZA INDUSTRIAL' }, { nome: 'LEANDRO ANTONIO VIEIRA', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'LEANDRO MARCIO MODESTO', funcao: 'JATISTA' }, { nome: 'LILIAN APARECIDA CAMPOS', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'LINDOMAR EVANGELISTA', funcao: 'OFICIAL DE LIMPEZA INDUSTRIAL' }, { nome: 'LORENA CRISTINA DOS SANTOS GOMES', funcao: 'JATISTA SPOT' },
+            { nome: 'LOURISVAL NUNES DE OLIVEIRA', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'LUCAS ALEXANDRE DA SILVA MAPA', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'LUCAS FABIANO', funcao: 'JATISTA SPOT' }, { nome: 'LUCIO ANGELO DE PAULA', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'LUIZ HENRIQUE DO NASCIMENTO DE JESUS', funcao: 'JATISTA' }, { nome: 'LUIZ OTHAVIO SILVA PEREIRA DA ROCHA', funcao: 'JATISTA SPOT' },
+            { nome: 'MAICON DA SILVA', funcao: 'JATISTA SPOT' }, { nome: 'MAICON LUCAS MOREIRA TORRES', funcao: 'JATISTA SPOT' },
+            { nome: 'MAICON PAIVA', funcao: 'OFICIAL DE LIMPEZA INDUSTRIAL' }, { nome: 'MAIQUE QUERINO JERONIMO MARTINHO', funcao: 'JATISTA SPOT' },
+            { nome: 'MARCOS ANTONIO DOS SANTOS CRUZ', funcao: 'OPERADOR DE MINICARREGADEIRA/VARREDEIRA' }, { nome: 'MARIANE APARECIDA DA SILVA SANTOS', funcao: 'OFICIAL DE LIMPEZA INDUSTRIAL' },
+            { nome: 'MAURICIO ALEXANDRE DE LIMA', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'MAURICIO GALDINO COSTA', funcao: 'JATISTA' },
+            { nome: 'MOACIR GUSTAVO DA SILVA PINTO', funcao: 'JATISTA SPOT' }, { nome: 'NAIARA DOS SANTOS PINA', funcao: 'OFICIAL DE LIMPEZA INDUSTRIAL' },
+            { nome: 'OCILEY DE MIRANDA', funcao: 'JATISTA' }, { nome: 'PAULO AUGUSTO FERREIRA BAETA', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'PAULO CARDOSO PEREIRA', funcao: 'JATISTA SPOT' }, { nome: 'PAULO MARCELINO VIEIRA', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'PAULO RICARDO', funcao: 'JATISTA SPOT' }, { nome: 'PAULO SANDER VICENTINO SANDIM', funcao: 'JATISTA SPOT' },
+            { nome: 'RAFAEL DOS SANTOS NORBERTO', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'RENATA DE FATIMA DA SILVA', funcao: 'JATISTA SPOT' },
+            { nome: 'RIAN HENRIQUE CAMPOS LADISLAU', funcao: 'JATISTA SPOT' }, { nome: 'RODRIGO PEREIRA', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'RUTE MARIA DA FONSECA', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'SANDOVAL REGINALDO DE SOUZA', funcao: 'JATISTA' },
+            { nome: 'SANDRO DE OLIVEIRA', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I' }, { nome: 'SANDRO ELI DE RESENDE', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I' },
+            { nome: 'ULACIANA SALVADOR DA SILVA', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'VALTER DO CARMO', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'VANDO MENDES DE OLIVEIRA FERNA', funcao: 'JATISTA' }, { nome: 'VINICIUS PEREIRA DE CARVALHO', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'WANDERSON CARDOSO DE OLIVEIRA', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'WELLINGTON CLEITON MESQUITA GALVAO', funcao: 'JATISTA SPOT' },
+            { nome: 'WILSON DOS SANTOS LONGUINHO', funcao: 'JATISTA SPOT' }, { nome: 'VICTOR MANOEL TITO', funcao: 'JATISTA SPOT' },
+            { nome: 'JUAREZ CHAGAS', funcao: 'MOTORISTA DE CAMINHAO' }, { nome: 'REGINALDO ALVES', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO LÍDER' },
+            { nome: 'WELLIGTON DA SILVA MORENO', funcao: 'MOTORISTA DE CAMINHAO' },
+            { nome: 'CARLOS ADRIANO DA SILVA', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I' }, { nome: 'AURIMAR GOMES LEITE', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I ' },
+            { nome: 'FABIO JUNIOR SANTANA BIAZUTTI', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I ' }, { nome: 'DENER DE MATOS DA SILVA', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I ' },
+            { nome: 'ITALO ROBERT DA SILVA COUTO', funcao: 'JATISTA SPOT' }, { nome: 'RAFAEL JONATHAS DE ALMEIDA CUNHA', funcao: 'OPERADOR ESPECIALISTA DE EQUIPAMENTO I ' }
+        ];
+        
+        // Colaboradores fixos ordenados por nome para a lista de informações
+        const colaboradoresFixosOrdenados = colaboradoresFixos.sort((a, b) => a.nome.localeCompare(b.nome));
 
-Everything you need to create world-class documentation.
+        const colaboradoresTurno = colaboradoresFixos.filter(c => {
+            const team = Object.keys(equipes).find(key => equipes[key].includes(c.nome));
+            return !!team;
+        }).map(c => {
+            const team = Object.keys(equipes).find(key => equipes[key].includes(c.nome));
+            const parts = c.nome.split(' ');
+            const display = (parts[0] + ' ' + parts[parts.length - 1]).substring(0, 20);
+            return { nome: c.nome, display: display, team: team };
+        }).sort((a, b) => a.nome.localeCompare(b.nome));
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+        const nomesColaboradores = colaboradoresFixos.map(c => c.nome).sort(); 
+        
+        // As TAGs ativas agora serão o conjunto das duas linhas.
+        const defaultTags = [...TAGS_LINHA_AMARELA, ...TAGS_LINHA_BRANCA].sort();
+        
+        let activeTags = [...defaultTags];
+        // Iniciamos com a linha vazia (null) para que nada seja renderizado
+        let currentLine = null; 
+        
+        // DADOS DA FROTA ATUALIZADOS E DETALHADOS
+        const frotaDetalhada = {
+            AMARELA: [
+                { tag: 'MC', equipamento: 'MINI CARREGADEIRA', vagas: 5, tags: ['MC01', 'MC02', 'MC03', 'MC04', 'MC120'] },
+                { tag: 'ME', equipamento: 'MINI ESCAVADEIRA', vagas: 2, tags: ['ME01', 'ME02'] },
+                { tag: 'RT', equipamento: 'RETROESCAVADEIRA', vagas: 3, tags: ['RT02', 'RT03', 'RT EVENTUAL 02'] }
+            ],
+            BRANCA: [
+                { tag: 'CA', equipamento: 'ALTA PRESSÃO', vagas: 6, tags: ['CA01', 'CA02', 'CA03', 'CA04', 'CA05', 'CA EVENTUAL'] },
+                { tag: 'CH', equipamento: 'HIPERVÁCUO', vagas: 2, tags: ['CH01', 'CH02'] },
+                { tag: 'CV', equipamento: 'SUCÇÃO', vagas: 7, tags: ['CV01', 'CV02', 'CV03', 'CV04', 'CV05', 'CV06', 'CV07'] },
+                { tag: 'CJ', equipamento: 'JABULANI', vagas: 2, tags: ['CJ01', 'CH353'] }, // Corrigido CH353 para CJ
+                { tag: 'CC', equipamento: 'CAMINHÃO COMBINADO', vagas: 2, tags: ['CC01', 'CC02'] }
+            ]
+        };
+        // Recompila a lista de vagas e o total para o card KPI
+        const frotaVagas = [...frotaDetalhada.AMARELA, ...frotaDetalhada.BRANCA].map(g => ({ tag: g.tag, equipamento: g.equipamento, vagas: g.vagas, linha: g.tag.match(/MC|ME|RT/) ? 'AMARELA' : 'BRANCA' }));
+        const totalVagas = frotaVagas.reduce((sum, item) => sum + item.vagas, 0);
 
-## Need inspiration?
+        const rawCalendario2025 = {
+            10: { 1: {t1:'D',t2:'C',t3:'B',folga:'A'}, 2: {t1:'A',t2:'D',t3:'B',folga:'C'}, 3: {t1:'A',t2:'D',t3:'C',folga:'B'}, 4: {t1:'B',t2:'D',t3:'C',folga:'A'}, 5: {t1:'B',t2:'A',t3:'C',folga:'D'}, 6: {t1:'B',t2:'A',t3:'D',folga:'C'}, 7: {t1:'C',t2:'A',t3:'D',folga:'B'}, 8: {t1:'C',t2:'B',t3:'A',folga:'D'}, 9: {t1:'C',t2:'B',t3:'A',folga:'D'}, 10: {t1:'D',t2:'B',t3:'A',folga:'C'}, 11: {t1:'D',t2:'C',t3:'B',folga:'A'}, 12: {t1:'A',t2:'C',t3:'B',folga:'D'}, 13: {t1:'A',t2:'D',t3:'B',folga:'C'}, 14: {t1:'A',t2:'D',t3:'C',folga:'B'}, 15: {t1:'B',t2:'D',t3:'C',folga:'A'}, 16: {t1:'C',t2:'B',t3:'D',folga:'A'}, 17: {t1:'C',t2:'B',t3:'A',folga:'D'}, 18: {t1:'D',t2:'C',t3:'A',folga:'B'}, 19: {t1:'D',t2:'C',t3:'A',folga:'B'}, 20: {t1:'D',t2:'C',t3:'B',folga:'A'}, 21: {t1:'A',t2:'D',t3:'B',folga:'C'}, 22: {t1:'A',t2:'D',t3:'C',folga:'B'}, 23: {t1:'B',t2:'A',t3:'C',folga:'D'}, 24: {t1:'B',t2:'A',t3:'D',folga:'C'}, 25: {t1:'C',t2:'B',t3:'D',folga:'A'}, 26: {t1:'C',t2:'B',t3:'D',folga:'A'}, 27: {t1:'C',t2:'B',t3:'A',folga:'D'}, 28: {t1:'D',t2:'C',t3:'A',folga:'B'}, 29: {t1:'D',t2:'C',t3:'B',folga:'A'}, 30: {t1:'A',t2:'D',t3:'B',folga:'C'}, 31: {t1:'A',t2:'D',t3:'C',folga:'B'} },
+            11: { 1: {t1:'B',t2:'A',t3:'C',folga:'D'}, 2: {t1:'B',t2:'A',t3:'C',folga:'D'}, 3: {t1:'B',t2:'A',t3:'C',folga:'D'}, 4: {t1:'C',t2:'B',t3:'D',folga:'A'}, 5: {t1:'C',t2:'B',t3:'A',folga:'D'}, 6: {t1:'D',t2:'C',t3:'A',folga:'B'}, 7: {t1:'D',t2:'C',t3:'B',folga:'A'}, 8: {t1:'A',t2:'D',t3:'B',folga:'C'}, 9: {t1:'A',t2:'D',t3:'B',folga:'C'}, 10: {t1:'A',t2:'D',t3:'C',folga:'B'}, 11: {t1:'B',t2:'A',t3:'C',folga:'D'}, 12: {t1:'B',t2:'A',t3:'D',folga:'C'}, 13: {t1:'B',t2:'A',t3:'C',folga:'D'}, 14: {t1:'B',t2:'A',t3:'D',folga:'C'}, 15: {t1:'D',t2:'C',t3:'A',folga:'B'}, 16: {t1:'D',t2:'C',t3:'A',folga:'B'}, 17: {t1:'D',t2:'C',t3:'B',folga:'A'}, 18: {t1:'A',t2:'D',t3:'B',folga:'C'}, 19: {t1:'A',t2:'D',t3:'C',folga:'B'}, 20: {t1:'B',t2:'A',t3:'C',folga:'D'}, 21: {t1:'B',t2:'A',t3:'D',folga:'C'}, 22: {t1:'C',t2:'B',t3:'D',folga:'A'}, 23: {t1:'C',t2:'B',t3:'D',folga:'A'}, 24: {t1:'C',t2:'B',t3:'A',folga:'D'}, 25: {t1:'D',t2:'C',t3:'A',folga:'B'}, 26: {t1:'D',t2:'C',t3:'B',folga:'A'}, 27: {t1:'A',t2:'D',t3:'B',folga:'C'}, 28: {t1:'A',t2:'D',t3:'C',folga:'B'}, 29: {t1:'B',t2:'A',t3:'C',folga:'D'}, 30: {t1:'B',t2:'A',t3:'C',folga:'D'} },
+            12: { 1: {t1:'B',t2:'A',t3:'D',folga:'C'}, 2: {t1:'C',t2:'B',t3:'D',folga:'A'}, 3: {t1:'C',t2:'B',t3:'A',folga:'D'}, 4: {t1:'D',t2:'C',t3:'A',folga:'B'}, 5: {t1:'D',t2:'C',t3:'B',folga:'A'}, 6: {t1:'A',t2:'D',t3:'B',folga:'C'}, 7: {t1:'A',t2:'D',t3:'B',folga:'C'}, 8: {t1:'A',t2:'D',t3:'C',folga:'B'}, 9: {t1:'B',t2:'A',t3:'C',folga:'D'}, 10: {t1:'B',t2:'A',t3:'D',folga:'C'}, 11: {t1:'C',t2:'B',t3:'D',folga:'A'}, 12: {t1:'C',t2:'B',t3:'A',folga:'D'}, 13: {t1:'D',t2:'C',t3:'A',folga:'B'}, 14: {t1:'D',t2:'C',t3:'A',folga:'B'}, 15: {t1:'D',t2:'C',t3:'B',folga:'A'}, 16: {t1:'A',t2:'D',t3:'B',folga:'C'}, 17: {t1:'A',t2:'D',t3:'C',folga:'B'}, 18: {t1:'B',t2:'A',t3:'C',folga:'D'}, 19: {t1:'B',t2:'A',t3:'D',folga:'C'}, 20: {t1:'C',t2:'B',t3:'D',folga:'A'}, 21: {t1:'C',t2:'B',t3:'D',folga:'A'}, 22: {t1:'C',t2:'B',t3:'A',folga:'D'}, 23: {t1:'D',t2:'C',t3:'A',folga:'B'}, 24: {t1:'D',t2:'C',t3:'B',folga:'A'}, 25: {t1:'A',t2:'D',t3:'B',folga:'C'}, 26: {t1:'A',t2:'D',t3:'C',folga:'B'}, 27: {t1:'B',t2:'A',t3:'C',folga:'D'}, 28: {t1:'B',t2:'A',t3:'C',folga:'D'}, 29: {t1:'B',t2:'A',t3:'D',folga:'C'}, 30: {t1:'C',t2:'B',t3:'D',folga:'A'}, 31: {t1:'C',t2:'B',t3:'A',folga:'D'} }
+        };
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+        function getNextShiftTeams(currentShifts) {
+            return { t1: currentShifts.folga, t2: currentShifts.t1, t3: currentShifts.t2, folga: currentShifts.t3 };
+        }
+        
+        function daysInMonth(month, year) {
+            if (month === 2) return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0) ? 29 : 28;
+            const longMonths = [1, 3, 5, 7, 8, 10, 12];
+            return longMonths.includes(month) ? 31 : 30;
+        }
+
+        function generateFullSchedule() {
+            const fullSchedule = { ...rawCalendario2025 }; 
+            const lastDay2025 = rawCalendario2025[12][31];
+            let currentShifts = getNextShiftTeams(lastDay2025); 
+            const year = 2026;
+            for (let month = 1; month <= 12; month++) {
+                const monthKey = month + (month <= 9 ? '' : '') + year; 
+                fullSchedule[monthKey] = {};
+                const days = daysInMonth(month, year);
+                for (let day = 1; day <= days; day++) {
+                    fullSchedule[monthKey][day] = currentShifts;
+                    currentShifts = getNextShiftTeams(currentShifts);
+                }
+            }
+            return fullSchedule;
+        }
+        const calendarioTurnos = generateFullSchedule();
+        
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const userId = "operacoes_geral";
+
+        let allData = [], unallocatedData = [], allOccurrences = [];
+        let pendingApprovals = [];
+        let currentRole = 'guest';
+        let chartInstance = null;
+        let activeColaborador = null;
+        let currentReviewId = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await signInAnonymously(auth);
+            
+            const tagsRef = doc(db, `artifacts/${__app_id}/users/${userId}/config`, 'tags_list');
+            onSnapshot(tagsRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    activeTags = docSnap.data().list.sort();
+                } else {
+                    setDoc(tagsRef, { list: defaultTags });
+                    activeTags = [...defaultTags];
+                }
+                // Não chama renderAdminCards/renderSupervisorCards aqui para evitar que as tags apareçam antes da seleção.
+                if(isViewVisible('view-dashboard')) updateDashboard();
+                // Apenas renderiza o painel de aprovações/gerenciamento se necessário
+                if(isViewVisible('admin-manage')) renderManageTable(); 
+            });
+
+            onSnapshot(collection(db, `artifacts/${__app_id}/users/${userId}/operacoes`), (s) => {
+                allData = s.docs.map(d => ({ id: d.id, ...d.data() }));
+                if(isViewVisible('view-dashboard')) updateDashboard();
+                if(isViewVisible('admin-manage')) renderManageTable();
+            });
+
+            onSnapshot(collection(db, `artifacts/${__app_id}/users/${userId}/unallocated`), (s) => {
+                unallocatedData = s.docs.map(d => ({ id: d.id, ...d.data() }));
+                if(isViewVisible('view-dashboard')) updateDashboard();
+                if(isViewVisible('admin-manage')) renderManageTable(); 
+            });
+
+            onSnapshot(collection(db, `artifacts/${__app_id}/users/${userId}/ocorrencias`), (s) => {
+                allOccurrences = s.docs.map(d => ({ id: d.id, ...d.data() }));
+                if(isViewVisible('view-dashboard')) updateDashboard();
+            });
+            
+            onSnapshot(collection(db, `artifacts/${__app_id}/users/${userId}/lancamentos_pendentes`), (s) => {
+                pendingApprovals = s.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Garante que o painel de aprovações seja atualizado em tempo real
+                if(currentRole === 'admin') renderApprovals();
+            });
+
+            initUI();
+            restoreSession();
+            
+            if (window.innerWidth >= 768) {
+                 document.getElementById('sidebar').classList.add('collapsed');
+            }
+        });
+        
+        window.toggleSidebar = function() {
+            const sidebar = document.getElementById('sidebar');
+            const button = document.getElementById('toggle-btn');
+            const isMobile = window.innerWidth < 768;
+
+            if (isMobile) {
+                const isOpen = sidebar.classList.toggle('mobile-open');
+                if (isOpen) { button.innerHTML = '&#10005;'; button.style.left = '200px'; } 
+                else { button.innerHTML = '&#9776;'; button.style.left = '15px'; }
+            } else {
+                const isCollapsed = sidebar.classList.toggle('collapsed');
+                button.innerHTML = isCollapsed ? '&#9776;' : '&#10005;';
+                if(isCollapsed) { button.classList.add('bg-slate-900', 'hover:bg-slate-700'); button.classList.remove('bg-blue-600', 'hover:bg-blue-700'); } 
+                else { button.classList.add('bg-blue-600', 'hover:bg-blue-700'); button.classList.remove('bg-slate-900', 'hover:bg-slate-700'); }
+            }
+        }
+
+        function initUI() {
+            const today = new Date().toISOString().split('T')[0];
+            ['dashboard-date','entry-date','manage-date','supervisor-date'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.value = today;
+            });
+
+            document.getElementById('colab-list').innerHTML = nomesColaboradores.map(c => `<option value="${c}">`).join('');
+
+            // Os grids de lançamento são iniciados vazios
+            document.getElementById('admin-grid').innerHTML = '<p class="text-center text-gray-400 py-24">Selecione a linha (Amarela/Branca) para carregar as TAGs.</p>';
+            document.getElementById('supervisor-grid').innerHTML = '<p class="text-center text-gray-400 py-24">Selecione a linha (Amarela/Branca) para carregar as TAGs.</p>';
+            
+            // Inicializa a seleção de botões para 'AMARELA' (visual)
+            updateLineButtons('AMARELA'); 
+
+            document.getElementById('btn-dash').onclick = () => switchTab('view-dashboard');
+            
+            // NOVO: Adiciona o listener para o botão de Informações
+            document.getElementById('btn-info').onclick = () => switchTab('view-info');
+            
+            // ALTERAÇÃO IMPORTANTE: Ação do botão "Lançar Dados" depende do cargo
+            document.getElementById('btn-launch').onclick = () => {
+                if(currentRole === 'admin') switchTab('view-admin');
+                else if(currentRole === 'supervisor') switchTab('view-supervisor');
+                else {
+                    // Para usuário padrão ou guest, não faz nada ou avisa
+                    // Na verdade, o botão estará oculto, mas por segurança:
+                    alert('Acesso Restrito');
+                }
+            };
+
+            document.getElementById('btn-schedule').onclick = () => { switchTab('view-schedule'); switchScheduleTab('schedule-month-view'); }; 
+            document.getElementById('login-form').onsubmit = handleLogin;
+            document.getElementById('logout-btn').onclick = handleLogout;
+            document.getElementById('btn-export').onclick = exportToExcel;
+
+            document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.onclick = () => switchAdminTab(btn.dataset.target));
+            document.getElementById('dashboard-date').onchange = updateDashboard;
+            document.getElementById('manage-date').onchange = renderManageTable;
+            document.getElementById('btn-save-admin').onclick = saveAdminData;
+            document.getElementById('btn-classify-team').onclick = openClassifyModal;
+            document.getElementById('edit-form').onsubmit = saveEditData;
+            document.getElementById('btn-submit-supervisor').onclick = submitSupervisorData;
+            
+            document.querySelectorAll('.btn-manage-tags').forEach(btn => btn.onclick = openTagsModal);
+            
+            document.getElementById('edit-unallocated-form').onsubmit = saveEditUnallocatedData;
+            
+            // NOVO: Event listeners para os botões de Linha
+            document.getElementById('btn-line-amarela-admin').onclick = () => switchLine('AMARELA', 'admin');
+            document.getElementById('btn-line-branca-admin').onclick = () => switchLine('BRANCA', 'admin');
+            document.getElementById('btn-line-amarela-supervisor').onclick = () => switchLine('AMARELA', 'supervisor');
+            document.getElementById('btn-line-branca-supervisor').onclick = () => switchLine('BRANCA', 'supervisor');
+
+            renderMonthSelects();
+            
+            document.getElementById('schedule-month-select').onchange = () => renderFullSchedule(document.getElementById('schedule-month-select').value);
+            document.getElementById('schedule-month-individual').onchange = () => {
+                const month = document.getElementById('schedule-month-individual').value;
+                if (activeColaborador) { renderIndividualSchedule(activeColaborador, month); } 
+                else { document.getElementById('schedule-individual-results').innerHTML = `<p class="text-gray-400 p-6 text-center">Selecione um colaborador ao lado para ver a escala.</p>`; }
+            };
+            
+            document.querySelector('[data-target-schedule="schedule-month-view"]').onclick = () => switchScheduleTab('schedule-month-view');
+            document.querySelector('[data-target-schedule="schedule-individual-search"]').onclick = () => switchScheduleTab('schedule-individual-search');
+            
+            const todayMonthKey = getTodayMonthKey();
+            const currentMonthEl = document.getElementById('schedule-month-select');
+            if (currentMonthEl) {
+                currentMonthEl.value = todayMonthKey;
+                renderFullSchedule(todayMonthKey); 
+            }
+
+            document.querySelectorAll('[data-close-modal]').forEach(b => b.onclick = closeModal);
+            
+            // Renderiza o conteúdo estático da nova aba
+            renderInfoView();
+        }
+        
+        window.toggleFrotaDetail = function(groupTag) {
+            const detailRow = document.getElementById(`frota-detail-${groupTag}`);
+            const icon = document.getElementById(`frota-icon-${groupTag}`);
+            if (detailRow && icon) {
+                detailRow.classList.toggle('hidden');
+                icon.classList.toggle('expanded');
+            }
+        }
+
+        function renderInfoView() {
+            const container = document.getElementById('info-content');
+            
+            // 1. Efetivo
+            const totalEfetivo = colaboradoresFixos.length;
+            const funcoes = colaboradoresFixos.reduce((acc, curr) => {
+                acc[curr.funcao] = (acc[curr.funcao] || 0) + 1;
+                return acc;
+            }, {});
+            const funcoesHtml = Object.keys(funcoes).map(f => `<li class="flex justify-between border-b pb-1"><span>${f}</span><span class="font-bold text-blue-600">${funcoes[f]}</span></li>`).join('');
+
+            // 2. Frota (Tabela KPI com detalhe expandido)
+            let frotaHtml = '';
+            
+            // Agrupa os dados de frota detalhada em uma única lista para iteração
+            const frotaGrupos = [...frotaDetalhada.AMARELA, ...frotaDetalhada.BRANCA];
+
+            frotaGrupos.forEach(item => {
+                const isAmarela = item.tag.match(/MC|ME|RT/);
+                const lineClass = isAmarela ? 'linha-amarela' : '';
+                const lineIcon = isAmarela ? '🚜' : '🚚';
+                const detailId = `frota-detail-${item.tag}`;
+                const iconId = `frota-icon-${item.tag}`;
+
+                // Linha principal (clicável)
+                frotaHtml += `
+                    <tr class="frota-row ${lineClass}" onclick="toggleFrotaDetail('${item.tag}')">
+                        <td class="p-3 font-bold flex items-center gap-2">
+                           <span id="${iconId}" class="rotated-icon text-gray-500">▶</span>
+                           ${lineIcon} ${item.tag}
+                        </td>
+                        <td class="p-3">${item.equipamento}</td>
+                        <td class="p-3 text-center font-bold">${item.vagas}</td>
+                    </tr>
+                `;
+                
+                // Linha de detalhe (oculta por padrão)
+                frotaHtml += `
+                    <tr id="${detailId}" class="frota-detail-row hidden">
+                        <td colspan="3" class="p-2">
+                           <p class="font-bold text-sm text-slate-700 mb-1">TAGs Ativas:</p>
+                           <ul class="frota-tag-list">
+                               ${item.tags.map(tag => `<li>${tag}</li>`).join('')}
+                           </ul>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            
+            const content = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Efetivo e Funções -->
+                    <div class="card p-6 lg:col-span-1">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Efetivo Operacional</h3>
+                        <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <p class="text-xs text-gray-600 uppercase">Total de Colaboradores</p>
+                            <p class="text-4xl font-extrabold text-blue-700">${totalEfetivo}</p>
+                        </div>
+                        <h4 class="font-bold text-slate-700 mb-3">Total por Função:</h4>
+                        <ul class="space-y-2 text-sm text-gray-600">
+                            ${funcoesHtml}
+                        </ul>
+                    </div>
+                    
+                    <!-- Frota Principal com Detalhe Interativo -->
+                    <div class="card p-6 lg:col-span-2">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Frota Ativa e Vagas (Detalhe Interativo)</h3>
+                        <div class="overflow-x-auto rounded-lg border border-gray-200">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-100 text-xs text-gray-600 uppercase">
+                                    <tr><th class="p-3">TAG Grupo</th><th class="p-3">Equipamento</th><th class="p-3 text-center">Qtd. Vagas</th></tr>
+                                </thead>
+                                <tbody id="frota-table-body">
+                                    ${frotaHtml}
+                                    <tr class="bg-blue-100 font-bold text-blue-800 border-t-2 border-blue-400">
+                                        <td class="p-3" colspan="2">TOTAL GERAL DA FROTA</td>
+                                        <td class="p-3 text-center">${totalVagas}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Legenda de Cores -->
+                        <div class="mt-4 p-3 border-t border-gray-200 text-xs text-gray-600">
+                            <span class="font-bold mr-4">Legenda:</span>
+                            <span class="inline-block px-2 py-1 rounded bg-yellow-500 text-white font-semibold">Linha Amarela (Tratores/Escavadeiras)</span>
+                            <span class="inline-block px-2 py-1 rounded bg-gray-200 text-gray-800 font-semibold ml-2">Linha Branca (Caminhões)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lista de Colaboradores e Férias -->
+                <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="card p-6 max-h-[80vh] overflow-y-auto custom-scroll">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Lista Completa de Colaboradores (${totalEfetivo})</h3>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-gray-700">
+                            <!-- Lista ordenada por nome -->
+                            ${colaboradoresFixosOrdenados.map(c => `<li><span class="font-bold">${c.nome}</span> (${c.funcao})</li>`).join('')}
+                        </ul>
+                    </div>
+                    
+                    <div class="card p-6 border-l-4 border-orange-500 bg-orange-50">
+                        <h3 class="text-xl font-bold text-orange-800 mb-4 border-b border-orange-300 pb-2">Gerenciamento de Férias e Afastamentos</h3>
+                        <p class="text-orange-700">Esta seção está planejada para o futuro.</p>
+                        <p class="text-sm text-orange-700 mt-3">Para informações de Férias e Afastamentos, a lógica de entrada e saída (IN/OUT) dos colaboradores precisa ser implementada no sistema de banco de dados para garantir que a equipe alocada esteja sempre correta. Os dados serão exibidos aqui assim que essa integração for finalizada.</p>
+                        <div class="mt-4 p-3 bg-white border border-orange-200 rounded text-sm font-semibold text-orange-600">
+                            Status atual: <span class="font-bold">INFORMAÇÃO MANUAL/EM DESENVOLVIMENTO.</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = content;
+        }
+
+        
+        // NOVO: Função para alternar a linha de lançamento
+        window.switchLine = function(line, role) {
+            currentLine = line;
+            updateLineButtons(line);
+            if (role === 'admin') {
+                renderAdminCards('admin-grid', line);
+            } else if (role === 'supervisor') {
+                renderSupervisorCards(line);
+            }
+        }
+        
+        // NOVO: Função para atualizar o estado visual dos botões de Linha
+        function updateLineButtons(line) {
+            document.querySelectorAll('.line-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            if (line === 'AMARELA') {
+                document.getElementById('btn-line-amarela-admin')?.classList.add('active');
+                document.getElementById('btn-line-amarela-supervisor')?.classList.add('active');
+            } else if (line === 'BRANCA') {
+                document.getElementById('btn-line-branca-admin')?.classList.add('active');
+                document.getElementById('btn-line-branca-supervisor')?.classList.add('active');
+            }
+        }
+        
+        function getTodayMonthKey() {
+             const today = new Date();
+             const month = today.getMonth() + 1;
+             const year = today.getFullYear();
+             if (year === 2025 && month >= 10) return month.toString();
+             const monthKey = month + (month <= 9 ? '' : '') + year; 
+             return monthKey in calendarioTurnos ? monthKey : '10'; 
+        }
+
+        function getMonthName(monthKey) {
+            let month, year;
+            if (monthKey.length <= 2) { 
+                month = parseInt(monthKey); year = 2025;
+            } else { 
+                year = parseInt(monthKey.slice(-4)); month = parseInt(monthKey.substring(0, monthKey.length - 4).trim());
+            }
+            const names = { 1: 'JANEIRO', 2: 'FEVEREIRO', 3: 'MARÇO', 4: 'ABRIL', 5: 'MAIO', 6: 'JUNHO', 7: 'JULHO', 8: 'AGOSTO', 9: 'SETEMBRO', 10: 'OUTUBRO', 11: 'NOVEMBRO', 12: 'DEZEMBRO' };
+            return `${names[month]} DE ${year}`;
+        }
+        
+        function renderMonthSelects() {
+            let optionsHtml = '';
+            const sortedKeys = Object.keys(calendarioTurnos).sort((a, b) => {
+                let yearA = a.length <= 2 ? 2025 : parseInt(a.slice(-4));
+                let monthA = a.length <= 2 ? parseInt(a) : parseInt(a.substring(0, a.length - 4).trim());
+                let yearB = b.length <= 2 ? 2025 : parseInt(b.slice(-4));
+                let monthB = b.length <= 2 ? parseInt(b) : parseInt(b.substring(0, b.length - 4).trim());
+                return (yearA * 100 + monthA) - (yearB * 100 + monthB);
+            });
+            sortedKeys.forEach(key => { optionsHtml += `<option value="${key}">${getMonthName(key)}</option>`; });
+            document.getElementById('schedule-month-select').innerHTML = optionsHtml;
+            document.getElementById('schedule-month-individual').innerHTML = optionsHtml;
+            const todayMonthKey = getTodayMonthKey();
+            if (document.getElementById('schedule-month-select').querySelector(`option[value="${todayMonthKey}"]`)) {
+                document.getElementById('schedule-month-select').value = todayMonthKey;
+                document.getElementById('schedule-month-individual').value = todayMonthKey;
+            }
+        }
+        
+        function getColaboradorType(name) { return motoristasCombinado.has(name.toUpperCase()) ? 'CMB' : 'CND'; }
+
+        function renderColaboradorList(team, title, teamColor) {
+            const members = equipes[team] || [];
+            let html = `<div class="mb-4"><h4 class="text-lg font-bold ${teamColor} mb-2">${title} (Equipe ${team})</h4>`;
+            members.forEach(name => {
+                const type = getColaboradorType(name);
+                const colorClass = type === 'CMB' ? 'text-blue-700 font-semibold' : 'text-red-600';
+                html += `<div class="flex justify-between items-center text-sm py-1 border-b border-gray-100 hover:bg-gray-50"><span class="${colorClass}">${name}</span><span class="text-xs font-bold px-2 py-0.5 rounded-full ${type === 'CMB' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}">${type}</span></div>`;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function getDayOfWeek(day, monthKey) {
+            let year, month;
+            if (monthKey.length <= 2) { month = parseInt(monthKey); year = 2025; } 
+            else { year = parseInt(monthKey.slice(-4)); month = parseInt(monthKey.substring(0, monthKey.length - 4).trim()); }
+            const date = new Date(year, month - 1, day);
+            return date.getDay(); 
+        }
+        
+        window.handleDayClick = function(monthKey, day) {
+            document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
+            const clickedCell = document.querySelector(`.day-cell[data-day="${day}"][data-month-key="${monthKey}"]`);
+            if (clickedCell) clickedCell.classList.add('selected');
+            const shifts = calendarioTurnos[monthKey][day];
+            const detailsContainer = document.getElementById('schedule-details-content');
+            const colorMap = { t1: 'text-amber-600', t2: 'text-green-600', t3: 'text-blue-600', folga: 'text-slate-500' };
+            let detailsHtml = `<div class="p-6"><h3 class="text-2xl font-bold text-slate-800 mb-6">Escala Detalhada - Dia ${day}</h3>
+                <div class="mb-4 p-3 bg-slate-50 border-l-4 border-blue-500 rounded-lg"><h4 class="text-sm font-bold text-slate-600">Equipes no Rodízio:</h4><p class="text-lg font-mono">T1: ${shifts.t1} | T2: ${shifts.t2} | T3: ${shifts.t3} | F: ${shifts.folga}</p></div>
+                ${renderColaboradorList(shifts.t1, 'TURNO 1 (00:00 às 08:00)', colorMap.t1)}${renderColaboradorList(shifts.t2, 'TURNO 2 (08:00 às 16:45 - ADM)', colorMap.t2)}${renderColaboradorList(shifts.t3, 'TURNO 3 (16:45 às 00:00)', colorMap.t3)}${renderColaboradorList(shifts.folga, 'FOLGA (Descanso)', colorMap.folga)}</div>`;
+            detailsContainer.innerHTML = detailsHtml;
+        };
+
+        function renderFullSchedule(monthKey) {
+            const container = document.getElementById('calendar-grid-container');
+            const detailsContainer = document.getElementById('schedule-details-content');
+            const monthData = calendarioTurnos[monthKey];
+            const monthName = getMonthName(monthKey);
+            detailsContainer.innerHTML = `<p class="text-center text-gray-400 p-6">Clique em uma data no calendário para ver os colaboradores escalados.</p>`;
+            if (!monthData) { container.innerHTML = `<p class="text-center text-red-500 py-8 font-bold">${monthName} não encontrado no calendário.</p>`; return; }
+            let html = `<h3 class="text-2xl font-bold text-slate-800 mb-6 text-center">${monthName}</h3><div class="calendar-grid bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">`;
+            const daysOfWeek = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+            daysOfWeek.forEach(day => { html += `<div class="calendar-header">${day}</div>`; });
+            const daysInMonth = Object.keys(monthData).length;
+            const firstDayOfWeek = getDayOfWeek(1, monthKey);
+            for (let i = 0; i < firstDayOfWeek; i++) { html += `<div class="day-cell bg-slate-50 border-gray-100"></div>`; }
+            const today = new Date();
+            const todayDay = today.getDate();
+            const todayMonth = today.getMonth() + 1;
+            const todayYear = today.getFullYear();
+            let selectedYear, selectedMonth;
+            if (monthKey.length <= 2) { selectedMonth = parseInt(monthKey); selectedYear = 2025; } else { selectedYear = parseInt(monthKey.slice(-4)); selectedMonth = parseInt(monthKey.substring(0, monthKey.length - 4).trim()); }
+            for (let day = 1; day <= daysInMonth; day++) {
+                const shifts = monthData[day];
+                const isToday = (day === todayDay && selectedMonth === todayMonth && selectedYear === todayYear);
+                const dayClass = isToday ? 'bg-blue-100 border-blue-400 shadow-md' : 'bg-white border-gray-200';
+                html += `<div class="day-cell ${dayClass}" data-month-key="${monthKey}" data-day="${day}" onclick="handleDayClick('${monthKey}', ${day})"><div class="day-num">${day}</div><div class="space-y-1"><div class="shift-label shift-t1">T1: ${shifts.t1}</div><div class="shift-label shift-t2">T2: ${shifts.t2}</div><div class="shift-label shift-t3">T3: ${shifts.t3}</div><div class="shift-label shift-folga">F: ${shifts.folga}</div></div></div>`;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function renderCollaboratorSelection() {
+            const listContainer = document.getElementById('colaborator-list-view');
+            const currentMonth = document.getElementById('schedule-month-individual').value;
+            const activeColab = activeColaborador; 
+            const html = colaboradoresTurno.map(c => {
+                const isActive = activeColab === c.nome ? 'active' : '';
+                return `<div class="collab-item ${isActive}" onclick="handleCollabClick('${c.nome}', '${currentMonth}', this)"><span>${c.display}</span><span class="collab-team">EQ ${c.team}</span></div>`;
+            }).join('');
+            listContainer.innerHTML = html;
+        }
+
+        window.handleCollabClick = function(name, monthKey, element) {
+            activeColaborador = name;
+            document.querySelectorAll('.collab-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            renderIndividualSchedule(name, monthKey);
+        }
+        
+        function renderIndividualSchedule(name, monthKey) {
+            const container = document.getElementById('schedule-individual-results');
+            if (!name) { container.innerHTML = '<p class="text-gray-400 p-6 text-center">Selecione um colaborador ao lado para ver a escala.</p>'; return; }
+            if (!calendarioTurnos[monthKey]) { container.innerHTML = '<p class="text-center text-gray-400 py-8">Mês indisponível no calendário.</p>'; return; }
+            let userTeam = null;
+            for (const [team, members] of Object.entries(equipes)) { if (members.some(m => m.toUpperCase() === name.toUpperCase())) { userTeam = team; break; } }
+            if (!userTeam) { container.innerHTML = '<p class="text-center text-red-500 py-8 font-bold">Colaborador não encontrado nas equipes fixas (A, B, C, D).</p>'; return; }
+            const monthData = calendarioTurnos[monthKey];
+            let html = `<div class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100 flex flex-col sm:flex-row justify-between items-center gap-2"><div><p class="text-sm text-blue-600 font-bold uppercase">Colaborador</p><h3 class="text-xl font-bold text-slate-800">${name}</h3></div><div class="text-right"><p class="text-sm text-blue-600 font-bold uppercase">Equipe Designada</p><h3 class="text-2xl font-bold text-slate-800">${userTeam}</h3></div></div><div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-3">`;
+            for (const day of Object.keys(monthData).sort((a, b) => parseInt(a) - parseInt(b))) {
+                const shifts = monthData[day];
+                let myShift = 'NÃO ESCALADO'; let colorClass = 'bg-gray-100 border-gray-200'; let textClass = 'text-gray-500'; let time = '';
+                if (shifts.folga === userTeam) { myShift = 'FOLGA'; colorClass = 'bg-slate-100 border-slate-300'; textClass = 'text-slate-400 font-bold'; } 
+                else if (shifts.t1 === userTeam) { myShift = 'TURNO 1'; time = '(00:00 às 08:00)'; colorClass = 'bg-amber-50 border-amber-200'; textClass = 'text-amber-700 font-bold'; } 
+                else if (shifts.t2 === userTeam) { myShift = 'TURNO 2'; time = '(08:00 às 16:45 - ADM)'; colorClass = 'bg-green-50 border-green-200'; textClass = 'text-green-700 font-bold'; } 
+                else if (shifts.t3 === userTeam) { myShift = 'TURNO 3'; time = '(16:45 às 00:00)'; colorClass = 'bg-blue-50 border-blue-200'; textClass = 'text-blue-700 font-bold'; }
+                html += `<div class="p-3 rounded-xl border ${colorClass} flex flex-col items-center justify-center text-center shadow-sm h-28"><span class="text-xl font-bold text-slate-800 mb-1">${day}</span><span class="text-xs text-gray-400 uppercase">Dia</span><span class="text-xs ${textClass} mt-1">${myShift}</span><span class="text-xs text-gray-500">${time}</span></div>`;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function switchScheduleTab(tabId) {
+            document.querySelectorAll('.schedule-subview').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.querySelectorAll('[data-target-schedule]').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-target-schedule="${tabId}"]`).classList.add('active');
+            if (tabId === 'schedule-month-view') { renderFullSchedule(document.getElementById('schedule-month-select').value); } 
+            else if (tabId === 'schedule-individual-search') {
+                renderCollaboratorSelection();
+                const currentMonth = document.getElementById('schedule-month-individual').value;
+                if (activeColaborador) { renderIndividualSchedule(activeColaborador, currentMonth); } 
+                else { document.getElementById('schedule-individual-results').innerHTML = `<p class="text-gray-400 p-6 text-center">Selecione um colaborador ao lado para ver a escala.</p>`; }
+            }
+        }
+
+        function isViewVisible(id) { return !document.getElementById(id).classList.contains('hidden') && !document.getElementById(id).closest('.app-view').classList.contains('hidden'); }
+        
+        function restoreSession() {
+            // ALTERAÇÃO IMPORTANTE: Ler de localStorage (usado pelo index.html)
+            const role = localStorage.getItem('user_role');
+            const name = localStorage.getItem('user_name');
+            
+            if(role && name) { 
+                setRole(role, name); 
+            } else { 
+                // Se não tem sessão, assume visitante (usuário padrão, mas sem nome)
+                // Ou poderia redirecionar de volta pro index.html se quisesse segurança total
+                switchTab('view-dashboard'); 
+                // Esconde o botão de lançar para visitantes sem login
+                document.getElementById('btn-launch').classList.add('hidden-link');
+                renderFullSchedule(getTodayMonthKey()); 
+            }
+        }
+
+        function switchTab(viewId) {
+            document.querySelectorAll('.app-view').forEach(el => { el.classList.add('hidden'); el.classList.remove('flex', 'flex-col'); });
+            const target = document.getElementById(viewId);
+            if(target) { 
+                target.classList.remove('hidden'); 
+                if(['view-admin','view-supervisor','view-schedule', 'view-info'].includes(viewId)) target.classList.add('flex', 'flex-col');
+                else if (viewId === 'view-login') target.classList.add('flex'); 
+            }
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            if(viewId === 'view-dashboard') { document.getElementById('btn-dash').classList.add('active'); updateDashboard(); }
+            else if(viewId === 'view-schedule') { document.getElementById('btn-schedule').classList.add('active'); switchScheduleTab('schedule-month-view'); }
+            else if(viewId === 'view-info') { document.getElementById('btn-info').classList.add('active'); renderInfoView(); }
+            else document.getElementById('btn-launch').classList.add('active');
+            
+            // Lógica para garantir que os grids fiquem vazios ao mudar para as views de lançamento
+            if (viewId === 'view-admin' || viewId === 'view-supervisor') {
+                 // Resetar o estado da linha e o conteúdo do grid ao entrar
+                currentLine = null;
+                updateLineButtons('NONE'); 
+                document.getElementById('admin-grid').innerHTML = '<p class="text-center text-gray-400 py-24">Selecione a linha (Amarela/Branca) para carregar as TAGs.</p>';
+                document.getElementById('supervisor-grid').innerHTML = '<p class="text-center text-gray-400 py-24">Selecione a linha (Amarela/Branca) para carregar as TAGs.</p>';
+            }
+        }
+
+        function checkLoginStatus() {
+            if(currentRole === 'admin') switchTab('view-admin');
+            else if(currentRole === 'supervisor') switchTab('view-supervisor');
+            else switchTab('view-login'); // Fallback para login interno se necessário
+        }
+
+        // Função interna de login (mantida como fallback, mas o index.html é o principal)
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('user').value.trim();
+            const pass = document.getElementById('pass').value.trim();
+            const btn = document.querySelector('#login-form button');
+            btn.innerText = "Entrando..."; btn.disabled = true;
+            setTimeout(() => {
+                if(user === 'admin' && pass === 'admin*1502') { 
+                    setRole('admin', 'Administrador'); 
+                    localStorage.setItem('user_role', 'admin'); 
+                    localStorage.setItem('user_name', 'Administrador'); 
+                }
+                else if(['weslleym','andersonb','reginaldoalvess'].includes(user) && ['weslley123','anderson123','regis*123'].includes(pass)) { 
+                    const name = user === 'weslleym' ? 'Weslley' : user === 'andersonb' ? 'Anderson' : 'Reginaldo';
+                    setRole('supervisor', name); 
+                    localStorage.setItem('user_role', 'supervisor'); 
+                    localStorage.setItem('user_name', name);
+                } else { 
+                    console.error('Acesso negado'); alert('Acesso negado'); btn.innerText = "Entrar"; btn.disabled = false; 
+                }
+            }, 500);
+        }
+
+        function setRole(role, name) {
+            currentRole = role;
+            document.getElementById('user-name').innerText = name;
+            
+            let roleDisplay = 'Visitante';
+            if (role === 'admin') roleDisplay = 'Acesso Total';
+            else if (role === 'supervisor') roleDisplay = 'Encarregado';
+            else if (role === 'user') roleDisplay = 'Usuário Padrão';
+            
+            document.getElementById('user-role').innerText = roleDisplay;
+            document.getElementById('sidebar-footer').classList.remove('hidden');
+            
+            // Lógica de visibilidade do botão "Lançar Dados"
+            const btnLaunch = document.getElementById('btn-launch');
+            
+            if (role === 'user' || role === 'guest') {
+                // Usuário padrão: Esconde botão de lançar dados
+                btnLaunch.classList.add('hidden-link');
+                switchTab('view-dashboard');
+            } else {
+                // Admin ou Supervisor: Mostra botão
+                btnLaunch.classList.remove('hidden-link');
+                
+                // Se acabou de logar como admin/supervisor, pode ir para a view correta
+                // Mas se for refresh (restoreSession), melhor ir pro dashboard
+                if (document.getElementById('view-login').classList.contains('flex')) {
+                     if(role === 'admin') { switchTab('view-admin'); renderApprovals(); switchAdminTab('admin-entry'); }
+                     else switchTab('view-supervisor');
+                } else {
+                     // Apenas atualiza a view atual se necessário
+                     if(isViewVisible('view-admin') && role !== 'admin') switchTab('view-dashboard');
+                }
+            }
+        }
+
+        function handleLogout() {
+            currentRole = 'guest'; localStorage.clear();
+            // Redireciona para o index.html ao sair
+            window.location.href = 'index.html';
+        }
+
+        function exportToExcel() {
+            const dateRaw = document.getElementById('dashboard-date').value;
+            const datePT = dateRaw.split('-').reverse().join('/');
+            const dayData = allData.filter(d => d.DATA === datePT);
+            if(dayData.length === 0) { alert("Sem dados para exportar na data selecionada."); return; }
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+            csvContent += "TAG;Equipamento;Status;Motorista;Ajudante 1;Ajudante 2;Observacao\n"; 
+            dayData.sort((a,b) => a.TAG.localeCompare(b.TAG)).forEach(row => {
+                const rowData = [
+                    row.TAG, row.EQUIPAMENTO || "", row.STATUS || "", row.MOTORISTA || "", row.NOME1 || "", row.NOME2 || "",
+                    row.OBSERVACAO ? row.OBSERVACAO.replace(/(\r\n|\n|\r|;)/gm, " ") : ""
+                ].map(e => e ? e.toString().replace(/;/g, ",") : ""); 
+                csvContent += rowData.join(";") + "\n";
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `relatorio_operacoes_${dateRaw}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function updateDashboard() {
+            const dateRaw = document.getElementById('dashboard-date').value;
+            const datePT = dateRaw.split('-').reverse().join('/');
+            const dayData = allData.filter(d => d.DATA === datePT);
+            const op = dayData.filter(i => i.STATUS === 'Em operação').length;
+            const rep = dayData.filter(i => i.STATUS === 'Em reparo').length;
+            const sem = dayData.filter(i => i.STATUS === 'Sem efetivo').length;
+
+            // NOVO: Cálculo para o status OUTROS
+            const totalReported = dayData.length;
+            const reportedOpRepSem = op + rep + sem;
+            const outros = totalReported - reportedOpRepSem;
+            
+            document.getElementById('kpi-total').innerText = totalReported; 
+            
+            document.getElementById('kpi-op').innerText = op;
+            document.getElementById('kpi-rep').innerText = rep;
+            document.getElementById('kpi-sem').innerText = sem;
+            document.getElementById('kpi-outros').innerText = outros; // Novo KPI Outros
+            
+            document.getElementById('card-op').onclick = () => openDetailModal('Em Operação', dayData.filter(i => i.STATUS === 'Em operação'));
+            document.getElementById('card-rep').onclick = () => openDetailModal('Em Reparo', dayData.filter(i => i.STATUS === 'Em reparo'));
+            document.getElementById('card-sem').onclick = () => openDetailModal('Sem Efetivo', dayData.filter(i => i.STATUS === 'Sem efetivo'));
+            document.getElementById('card-outros').onclick = () => { // Novo Card Outros
+                const otherStatuses = dayData.filter(i => i.STATUS !== 'Em operação' && i.STATUS !== 'Em reparo' && i.STATUS !== 'Sem efetivo');
+                openDetailModal('Outros Status (Turno 1, Turno 3, Folga, etc.)', otherStatuses);
+            };
+
+            renderChart(op, rep, sem, outros, dayData.length); // Ajusta a função de gráfico
+            const downtime = calculateDowntime(dateRaw, dayData, allOccurrences);
+            document.getElementById('kpi-hours').innerText = `${downtime.hours}h ${downtime.minutes}m`;
+            document.getElementById('kpi-eff').innerText = `${downtime.efficiency}%`;
+            const tbody = document.getElementById('dash-table-body');
+            tbody.innerHTML = dayData.length ? dayData.sort((a,b) => a.TAG.localeCompare(b.TAG)).map(row => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 font-bold text-gray-700">${row.TAG}</td>
+                    <td class="p-3 text-sm">${row.EQUIPAMENTO || '-'}</td>
+                    <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${getStatusColor(row.STATUS)}">${row.STATUS}</span></td>
+                    <td class="p-3 text-sm">${row.MOTORISTA || '-'}</td>
+                    <td class="p-3 text-sm text-gray-500">${row.NOME1 || '-'}</td>
+                    <td class="p-3 text-sm text-gray-500">${row.NOME2 || '-'}</td>
+                </tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-gray-400">Sem dados</td></tr>';
+            const unallocatedToday = unallocatedData.filter(u => u.DATA === datePT);
+            const workingNames = new Set();
+            dayData.forEach(d => { if(d.MOTORISTA) workingNames.add(d.MOTORISTA); if(d.NOME1) workingNames.add(d.NOME1); if(d.NOME2) workingNames.add(d.NOME2); });
+            renderUnallocatedCards(unallocatedToday, workingNames);
+        }
+        
+        function renderUnallocatedCards(unallocatedToday, workingNames) {
+            const notWorking = colaboradoresFixos.filter(c => !workingNames.has(c.nome));
+            const groups = {};
+            notWorking.forEach(p => {
+                const record = unallocatedToday.find(u => u.NOME === p.nome);
+                const status = record ? record.STATUS : 'Não Classificado';
+                if(!groups[status]) groups[status] = [];
+                groups[status].push(p);
+            });
+            const unallocGrid = document.getElementById('unallocated-grid');
+            unallocGrid.innerHTML = '';
+            Object.keys(groups).sort().forEach(status => {
+                const count = groups[status].length;
+                let colorClass = 'border-gray-400 text-gray-600';
+                if(status === 'Férias') colorClass = 'border-blue-400 text-blue-600';
+                if(status === 'Atestado') colorClass = 'border-red-400 text-red-600';
+                if(status === 'Folga') colorClass = 'border-green-400 text-green-600'; 
+                if(status === 'Falta') colorClass = 'border-red-600 text-red-800';
+                if(status === 'Não Classificado') colorClass = 'border-orange-400 text-orange-600';
+                // Novos status
+                if(status === 'Afastado') colorClass = 'border-purple-400 text-purple-600';
+                if(status === 'Turno') colorClass = 'border-cyan-400 text-cyan-600';
+                if(status === 'Periódico') colorClass = 'border-teal-400 text-teal-600';
+
+                const card = document.createElement('div');
+                card.className = `card card-interactive p-4 border-l-4 ${colorClass}`;
+                card.innerHTML = `<div class="flex justify-between items-center"><span class="font-bold uppercase text-xs">${status}</span><span class="text-2xl font-bold">${count}</span></div>`;
+                card.onclick = () => openUnallocatedListModal(status, groups[status]);
+                unallocGrid.appendChild(card);
+            });
+        }
+
+        function calculateDowntime(dateISO, dayData, occurrences) {
+            let totalMinutesDown = 0;
+            // Usa defaultTags que agora contêm todas as tags, incluindo a nova divisão.
+            const totalPotential = defaultTags.length * 480; 
+            dayData.forEach(d => { 
+                if(d.STATUS === 'Em reparo' || d.STATUS === 'Sem efetivo') { totalMinutesDown += 480; }
+            });
+            const hours = Math.floor(totalMinutesDown / 60);
+            const minutes = totalMinutesDown % 60;
+            const eff = totalPotential > 0 ? (((totalPotential - totalMinutesDown) / totalPotential) * 100).toFixed(1) : 0;
+            return { hours, minutes, efficiency: eff };
+        }
+
+        function getStatusColor(s) {
+            if(s === 'Em operação') return 'bg-green-100 text-green-700';
+            if(s === 'Em reparo') return 'bg-red-100 text-red-700';
+            if(s === 'Sem efetivo') return 'bg-yellow-100 text-yellow-700';
+            // Novo status Outros (inclui Turno 1, Turno 3, Folga, etc.)
+            if(['TURNO 1', 'TURNO 3', 'FOLGA'].includes(s)) return 'bg-gray-100 text-gray-600';
+            return 'bg-gray-100 text-gray-600'; // Default para outros status não mapeados
+        }
+
+        // Ajuste para incluir 'Outros'
+        function renderChart(op, rep, sem, outros, total) {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            if(chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: { 
+                    labels: ['Operação', 'Reparo', 'Sem Efetivo', 'Outros', 'Pendente (Não Apontado)'], 
+                    datasets: [{ 
+                        data: [op, rep, sem, outros, Math.max(0, activeTags.length - total)], 
+                        // Cor Cinza para Outros
+                        backgroundColor: ['#22c55e','#ef4444','#eab308','#94a3b8','#e2e8f0'], 
+                        borderWidth: 0 
+                    }] 
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+        
+        // Função para obter as TAGs corretas baseada na linha
+        function getTagsForLine(line) {
+             if (line === 'AMARELA') return TAGS_LINHA_AMARELA;
+             if (line === 'BRANCA') return TAGS_LINHA_BRANCA;
+             // Se houver algum erro ou uma linha não identificada, retorna um array vazio
+             return [];
+        }
+
+        // NOVO: Função para renderizar cards do Supervisor, filtrando por linha
+        function renderSupervisorCards(line) {
+            const tagsToRender = getTagsForLine(line);
+             if (tagsToRender.length === 0) {
+                 document.getElementById('supervisor-grid').innerHTML = '<p class="text-center text-gray-400 py-24">Nenhuma TAG para a linha selecionada.</p>';
+                 return;
+             }
+            document.getElementById('supervisor-grid').innerHTML = tagsToRender.map(tag => `
+                <div class="card mobile-card p-4 flex flex-col gap-3" data-tag="${tag}">
+                    <div class="flex justify-between items-center"><span class="font-bold text-lg text-slate-800">${tag}</span>
+                    <select class="input-field text-xs w-24 bg-white" data-field="equip">
+                        <option value="">Equip.</option>
+                        ${equipmentOptions}
+                    </select>
+                    </div>
+                    <select class="input-field py-2 font-medium text-gray-700" onchange="this.closest('.card').classList.toggle('filled', this.value !== '')" data-field="status">
+                        <option value="">Status...</option><option>Em operação</option><option>Em reparo</option><option>Sem efetivo</option><option>TURNO 1</option><option>TURNO 3</option><option>FOLGA</option>
+                    </select>
+                    <input type="text" list="colab-list" placeholder="Motorista" class="input-field" data-field="mot">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" list="colab-list" placeholder="Ajudante 1" class="input-field" data-field="n1">
+                        <input type="text" list="colab-list" placeholder="Ajudante 2" class="input-field" data-field="n2">
+                    </div>
+                    <input type="text" placeholder="Obs" class="input-field" data-field="obs">
+                </div>`).join('');
+        }
+
+        async function submitSupervisorData() {
+            const date = document.getElementById('supervisor-date').value.split('-').reverse().join('/');
+            const cards = document.querySelectorAll('#supervisor-grid .card');
+            const entries = [];
+            cards.forEach(c => {
+                const s = c.querySelector('[data-field="status"]').value;
+                if(s || c.querySelector('[data-field="equip"]').value) {
+                    entries.push({ 
+                        TAG: c.dataset.tag, STATUS: s, EQUIPAMENTO: c.querySelector('[data-field="equip"]').value, 
+                        MOTORISTA: c.querySelector('[data-field="mot"]').value.toUpperCase(), 
+                        NOME1: c.querySelector('[data-field="n1"]').value.toUpperCase(), 
+                        NOME2: c.querySelector('[data-field="n2"]').value.toUpperCase(), 
+                        OBSERVACAO: c.querySelector('[data-field="obs"]').value 
+                    });
+                }
+            });
+            if(!entries.length) { alert("Preencha algo antes de enviar!"); return; }
+            try {
+                await addDoc(collection(db, `artifacts/${__app_id}/users/${userId}/lancamentos_pendentes`), { 
+                    DATA: date, submittedBy: document.getElementById('user-name').innerText, timestamp: serverTimestamp(), entries: entries 
+                });
+                alert("Lançamento enviado para aprovação!");
+                cards.forEach(c => { c.classList.remove('filled'); c.querySelectorAll('input, select').forEach(i => i.value = ''); });
+            } catch (error) { console.error(error); alert("Erro ao enviar!"); }
+        }
+
+        function switchAdminTab(id) {
+            document.querySelectorAll('.admin-subview').forEach(el => el.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.className = 'admin-tab-btn px-4 py-2 rounded text-sm font-bold text-slate-500 hover:bg-white transition');
+            document.querySelector(`[data-target="${id}"]`).className = 'admin-tab-btn px-4 py-2 rounded text-sm font-bold bg-blue-100 text-blue-700 border-b-2 border-blue-500 transition';
+            if(id === 'admin-manage') renderManageTable();
+            // Ação adicionada: renderizar aprovações quando a aba é selecionada
+            if(id === 'admin-approvals') renderApprovals();
+            // Ao mudar para a aba de Lançamento, força a renderização da linha se já tiver sido selecionada, senão mantém a mensagem.
+            if(id === 'admin-entry' && currentLine) renderAdminCards('admin-grid', currentLine);
+        }
+
+        // NOVO: Função para renderizar cards do Admin, filtrando por linha
+        function renderAdminCards(id, line) {
+            const tagsToRender = getTagsForLine(line);
+            if (tagsToRender.length === 0) {
+                 document.getElementById('admin-grid').innerHTML = '<p class="text-center text-gray-400 py-24">Nenhuma TAG para a linha selecionada.</p>';
+                 return;
+             }
+            document.getElementById(id).innerHTML = tagsToRender.map(tag => `
+                <div class="card p-3 flex flex-col gap-2" data-tag="${tag}">
+                    <div class="flex justify-between items-center border-b pb-1"><span class="font-bold text-blue-900">${tag}</span>
+                    <select class="input-field text-xs w-24 py-1" data-field="equip">
+                        <option value="">Equip</option>
+                        ${equipmentOptions}
+                    </select>
+                    </div>
+                    <select class="input-field py-1 text-sm" data-field="status">
+                        <option value="">Status...</option><option>Em operação</option><option>Em reparo</option><option>Sem efetivo</option><option>TURNO 1</option><option>TURNO 3</option><option>FOLGA</option>
+                    </select>
+                    <input type="text" list="colab-list" placeholder="Motorista" class="input-field py-1 text-sm" data-field="mot">
+                    <input type="text" list="colab-list" placeholder="Ajudante 1" class="input-field py-1 text-sm" data-field="n1">
+                    <input type="text" list="colab-list" placeholder="Ajudante 2" class="input-field py-1 text-sm" data-field="n2">
+                    <input type="text" placeholder="Obs" class="input-field py-1 text-sm" data-field="obs">
+                </div>`).join('');
+        }
+
+        async function saveAdminData() {
+            const date = document.getElementById('entry-date').value.split('-').reverse().join('/');
+            const cards = document.querySelectorAll('#admin-grid .card');
+            const batchOps = [];
+            cards.forEach(c => {
+                const s = c.querySelector('[data-field="status"]').value;
+                const equip = c.querySelector('[data-field="equip"]').value;
+                // Salva somente se o card tiver conteúdo
+                if(s || equip) {
+                    const docRef = doc(collection(db, `artifacts/${__app_id}/users/${userId}/operacoes`));
+                    batchOps.push({
+                        ref: docRef, 
+                        data: { 
+                            TAG: c.dataset.tag, DATA: date, EQUIPAMENTO: equip, STATUS: s, 
+                            MOTORISTA: c.querySelector('[data-field="mot"]').value.toUpperCase(), NOME1: c.querySelector('[data-field="n1"]').value.toUpperCase(), NOME2: c.querySelector('[data-field="n2"]') ? c.querySelector('[data-field="n2"]').value.toUpperCase() : '', OBSERVACAO: c.querySelector('[data-field="obs"]').value 
+                        }
+                    });
+                }
+            });
+            
+            if(batchOps.length) { 
+                try {
+                    const firestoreBatch = writeBatch(db);
+                    batchOps.forEach(op => firestoreBatch.set(op.ref, op.data)); 
+                    await firestoreBatch.commit();
+                    
+                    if(currentReviewId) {
+                        await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/lancamentos_pendentes`, currentReviewId));
+                        currentReviewId = null; 
+                        alert("Lançamentos salvos e pendência finalizada com sucesso!"); 
+                    } else {
+                        alert("Lançamentos salvos com sucesso!"); 
+                    }
+
+                    // Limpa apenas os cards que foram exibidos na tela
+                    document.getElementById('admin-grid').innerHTML = '<p class="text-center text-gray-400 py-24">Selecione a linha (Amarela/Branca) para carregar as TAGs.</p>';
+                    updateLineButtons('NONE'); // Desativa os botões
+                    currentLine = null; // Reseta o estado
+                } catch (error) { console.error(error); alert("Erro ao salvar!"); }
+            } else alert("Preencha ao menos o Status ou Equipamento.");
+        }
+        
+        function renderManageTable() {
+            const date = document.getElementById('manage-date').value.split('-').reverse().join('/');
+            
+            // 1. Tabela de Operações
+            const records = allData.filter(d => d.DATA === date);
+            document.getElementById('manage-body').innerHTML = records.length ? records.sort((a,b)=>a.TAG.localeCompare(b.TAG)).map(r => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 font-bold">${r.TAG}</td><td class="p-3 text-sm">${r.STATUS}</td><td class="p-3 text-sm">${r.MOTORISTA || '-'}</td>
+                    <td class="p-3 flex gap-2 justify-end"><button onclick="window.openEditModal('${r.id}')" class="text-blue-600 hover:bg-blue-50 p-2 rounded">✏️</button><button onclick="window.openOccurrenceModal('${r.id}', '${r.TAG}')" class="text-yellow-600 hover:bg-yellow-50 px-2 py-1 rounded text-xs border border-yellow-200 font-bold">⚠️</button><button onclick="window.deleteRecord('${r.id}')" class="text-red-600 hover:bg-red-50 p-2 rounded">🗑️</button></td>
+                </tr>`).join('') : '<tr><td colspan="4" class="p-8 text-center text-gray-400">Sem registros de operação</td></tr>';
+
+            // 2. Tabela de Não Alocados
+            const unallocatedRecords = unallocatedData.filter(u => u.DATA === date);
+            const unallocatedBody = document.getElementById('manage-unallocated-body');
+            if (unallocatedBody) {
+                unallocatedBody.innerHTML = unallocatedRecords.length ? unallocatedRecords.sort((a,b) => a.NOME.localeCompare(b.NOME)).map(u => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 font-bold text-gray-700">${u.NOME}</td>
+                        <td class="p-3 text-sm font-semibold text-blue-600">${u.STATUS}</td>
+                        <td class="p-3 text-right"><button onclick="window.openEditUnallocatedModal('${u.id}')" class="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded font-bold text-sm border border-blue-200">Editar</button></td>
+                    </tr>
+                `).join('') : '<tr><td colspan="3" class="p-8 text-center text-gray-400">Nenhum colaborador não alocado neste dia</td></tr>';
+            }
+        }
+
+        window.deleteRecord = async (id) => { 
+            if(confirm("Tem certeza que deseja EXCLUIR este registro?")) {
+                try { await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/operacoes`, id)); } catch (error) { console.error(error); alert("Erro ao excluir."); }
+            }
+        };
+
+        window.openEditModal = (id) => {
+            const item = allData.find(d => d.id === id); if(!item) return;
+            document.getElementById('edit-id').value = id; document.getElementById('edit-tag').value = item.TAG;
+            document.getElementById('edit-equip').value = item.EQUIPAMENTO || ''; document.getElementById('edit-status').value = item.STATUS || '';
+            document.getElementById('edit-mot').value = item.MOTORISTA || ''; document.getElementById('edit-n1').value = item.NOME1 || ''; document.getElementById('edit-n2').value = item.NOME2 || ''; document.getElementById('edit-obs').value = item.OBSERVACAO || '';
+            document.getElementById('modal-edit').classList.remove('hidden');
+        };
+
+        window.saveEditData = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const updatedData = { 
+                EQUIPAMENTO: document.getElementById('edit-equip').value, STATUS: document.getElementById('edit-status').value, 
+                MOTORISTA: document.getElementById('edit-mot').value.toUpperCase(), NOME1: document.getElementById('edit-n1').value.toUpperCase(), NOME2: document.getElementById('edit-n2').value.toUpperCase(), OBSERVACAO: document.getElementById('edit-obs').value 
+            };
+            try { await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/operacoes`, id), updatedData); alert("Registro atualizado!"); closeModal(); } catch (error) { console.error(error); alert("Erro ao atualizar."); }
+        };
+
+        window.openOccurrenceModal = (id, tag) => {
+            document.getElementById('occ-id').value = id; document.getElementById('occ-tag').innerText = tag;
+            const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
+            document.getElementById('occ-date').value = now.toISOString().slice(0,16);
+            document.getElementById('modal-occ').classList.remove('hidden');
+        };
+
+        window.saveOccurrence = async () => {
+            const id = document.getElementById('occ-id').value;
+            const status = document.getElementById('occ-status').value;
+            const date = document.getElementById('occ-date').value;
+            const obs = document.getElementById('occ-obs').value;
+            const tag = document.getElementById('occ-tag').innerText;
+            if(!status || !date) { alert("Preencha o Status e a Data/Hora."); return; }
+            try {
+                await addDoc(collection(db, `artifacts/${__app_id}/users/${userId}/ocorrencias`), { DATA_HORA: date, TAG: tag, NOVO_STATUS: status, OBSERVACAO: obs });
+                await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/operacoes`, id), { STATUS: status });
+                alert("Ocorrência registrada!"); closeModal();
+            } catch (error) { console.error(error); alert("Erro ao registrar."); }
+        };
+
+        window.openClassifyModal = () => {
+            const date = document.getElementById('entry-date').value.split('-').reverse().join('/');
+            // A classificação deve levar em conta TODAS as tags, independentemente da linha ativa
+            const allCards = [...document.querySelectorAll('#admin-grid .card')].concat([...document.querySelectorAll('#admin-grid-branca .card')]);
+            const working = new Set();
+            allCards.forEach(c => { ['mot','n1','n2'].forEach(f => { const val = c.querySelector(`[data-field="${f}"]`)?.value; if(val) working.add(val.toUpperCase()); }); });
+            const unallocated = colaboradoresFixos.filter(c => !working.has(c.nome));
+            const unallocatedToday = unallocatedData.filter(u => u.DATA === date);
+            
+            document.getElementById('classify-list').innerHTML = unallocated.map(c => {
+                const record = unallocatedToday.find(u => u.NOME === c.nome);
+                const currentStatus = record ? record.STATUS : 'Disponível';
+                // Status atualizados para incluir Afastado, Turno, Periodico
+                const options = listaStatusNaoAlocados.map(status => `<option value="${status}" ${status === currentStatus ? 'selected' : ''}>${status}</option>`).join('');
+                return `<div class="flex items-center gap-2 border-b pb-2"><span class="text-sm font-bold flex-1">${c.nome}</span><select class="input-field py-1 w-1/3 text-xs classify-select" data-name="${c.nome}">${options}</select></div>`;
+            }).join('');
+            document.getElementById('modal-classify').classList.remove('hidden');
+        };
+
+        window.saveClassify = async () => {
+            const date = document.getElementById('entry-date').value.split('-').reverse().join('/'); 
+            const batch = writeBatch(db);
+            document.querySelectorAll('.classify-select').forEach(sel => { 
+                const ref = doc(collection(db, `artifacts/${__app_id}/users/${userId}/unallocated`)); 
+                batch.set(ref, { DATA: date, NOME: sel.dataset.name, STATUS: sel.value, timestamp: serverTimestamp() }); 
+            });
+            try { await batch.commit(); alert("Equipe classificada!"); closeModal(); } catch (error) { console.error(error); alert("Erro ao salvar."); }
+        };
+        
+        // Funções para Editar Não Alocados (Gerenciar)
+        window.openEditUnallocatedModal = (id) => {
+            const entry = unallocatedData.find(u => u.id === id);
+            if (!entry) return;
+            document.getElementById('edit-unallocated-id').value = id;
+            document.getElementById('edit-unallocated-name').innerText = entry.NOME;
+            // Preenche o select com as opções atualizadas
+            document.getElementById('edit-unallocated-status').innerHTML = statusOptionsHTML;
+            document.getElementById('edit-unallocated-status').value = entry.STATUS;
+            document.getElementById('modal-edit-unallocated').classList.remove('hidden');
+        };
+
+        window.saveEditUnallocatedData = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-unallocated-id').value;
+            const newStatus = document.getElementById('edit-unallocated-status').value;
+            
+            try {
+                await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/unallocated`, id), { STATUS: newStatus });
+                alert("Status atualizado com sucesso!");
+                closeModal();
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao atualizar status.");
+            }
+        };
+
+        window.openDetailModal = (title, items) => {
+            document.getElementById('detail-title').innerText = title;
+            // Se o título for 'Outros Status', detalha o status de cada item
+            if (title.includes('Outros Status')) {
+                 document.getElementById('detail-content').innerHTML = items.length ? items.map(i => `<div class="p-3 border-b border-gray-100 hover:bg-gray-50"><div class="flex justify-between"><span class="font-bold text-slate-800">${i.TAG}</span><span class="text-xs bg-slate-100 px-2 py-0.5 rounded text-blue-500">${i.EQUIPAMENTO}</span></div><div class="text-sm text-slate-600 mt-1">Status: <span class="font-bold text-gray-700">${i.STATUS}</span></div><div class="text-sm text-slate-600 mt-1">${i.MOTORISTA || 'Sem motorista'}</div>${i.OBSERVACAO ? `<div class="text-xs text-red-400 mt-1 italic">${i.OBSERVACAO}</div>` : ''}</div>`).join('') : '<p class="text-center text-gray-400 p-4">Vazio</p>';
+            } else {
+                 document.getElementById('detail-content').innerHTML = items.length ? items.map(i => `<div class="p-3 border-b border-gray-100 hover:bg-gray-50"><div class="flex justify-between"><span class="font-bold text-slate-800">${i.TAG}</span><span class="text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-500">${i.EQUIPAMENTO}</span></div><div class="text-sm text-slate-600 mt-1">${i.MOTORISTA || 'Sem motorista'}</div>${i.OBSERVACAO ? `<div class="text-xs text-red-400 mt-1 italic">${i.OBSERVACAO}</div>` : ''}</div>`).join('') : '<p class="text-center text-gray-400 p-4">Vazio</p>';
+            }
+            document.getElementById('modal-detail').classList.remove('hidden');
+        };
+
+        window.openUnallocatedListModal = (status, items) => {
+            document.getElementById('detail-title').innerText = `Colaboradores: ${status}`;
+            document.getElementById('detail-content').innerHTML = items.length ? items.map(i => `<div class="p-3 border-b border-gray-100 flex justify-between"><span class="font-bold text-slate-700">${i.nome}</span><span class="text-xs opacity-75">${i.funcao}</span></div>`).join('') : '<p class="text-center text-gray-400 p-4">Vazio</p>';
+            document.getElementById('modal-detail').classList.remove('hidden');
+        };
+
+        function renderApprovals() {
+            const container = document.getElementById('approval-list');
+            if(!pendingApprovals.length) { container.innerHTML = '<p class="text-gray-400 text-center py-8">Nenhuma pendência de aprovação.</p>'; return; }
+            container.innerHTML = pendingApprovals.map(p => `<div class="card p-4 flex justify-between items-center"><div><p class="font-bold text-lg text-slate-700">📅 ${p.DATA}</p><p class="text-sm text-slate-500">Por: <span class="font-semibold text-blue-600">${p.submittedBy}</span></p><p class="text-xs text-slate-400 mt-1">${p.entries.length} itens para revisão</p></div><div class="flex gap-2"><button onclick="window.reviewSubmission('${p.id}')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold text-sm">Carregar</button><button onclick="window.rejectSubmission('${p.id}')" class="bg-red-100 text-red-600 px-4 py-2 rounded hover:bg-red-200 font-bold text-sm">Excluir</button></div></div>`).join('');
+        }
+
+        window.reviewSubmission = (id) => {
+            const sub = pendingApprovals.find(p => p.id === id); if(!sub) return;
+            currentReviewId = id;
+            document.getElementById('entry-date').value = sub.DATA.split('/').reverse().join('-');
+            
+            // Lógica de determinação da linha
+            const allSubmissionTags = sub.entries.map(e => e.TAG);
+            const isAmarela = allSubmissionTags.some(tag => TAGS_LINHA_AMARELA.includes(tag));
+            const isBranca = allSubmissionTags.some(tag => TAGS_LINHA_BRANCA.includes(tag));
+            
+            let lineToLoad = null;
+            if (isAmarela && !isBranca) {
+                lineToLoad = 'AMARELA';
+            } else if (!isAmarela && isBranca) {
+                lineToLoad = 'BRANCA';
+            } else if (isAmarela && isBranca) {
+                // Se houver mix, por padrão, carregamos a Amarela e avisamos o Admin.
+                lineToLoad = 'AMARELA'; 
+                alert(`AVISO: Esta pendência contém TAGs de ambas as linhas. O painel carregou a LINHA AMARELA. Você deve salvar a Linha Amarela, mudar para a Branca para carregar e salvar o restante.`);
+            }
+
+            // A nova função renderAdminCards já foi chamada pelo switchLine, agora populamos os campos
+            if (lineToLoad) {
+                switchAdminTab('admin-entry'); // Garante que a aba Lançamento esteja ativa
+                switchLine(lineToLoad, 'admin'); // Renderiza o grid correto
+                const cards = document.querySelectorAll('#admin-grid .card'); 
+                cards.forEach(c => c.querySelectorAll('input, select').forEach(i => i.value = ''));
+                
+                sub.entries.forEach(entry => { 
+                    const card = document.querySelector(`#admin-grid .card[data-tag="${entry.TAG}"]`); 
+                    if(card) { 
+                        if(entry.EQUIPAMENTO) card.querySelector('[data-field="equip"]').value = entry.EQUIPAMENTO; 
+                        if(entry.STATUS) card.querySelector('[data-field="status"]').value = entry.STATUS; 
+                        if(entry.MOTORISTA) card.querySelector('[data-field="mot"]').value = entry.MOTORISTA; 
+                        if(entry.NOME1) card.querySelector('[data-field="n1"]').value = entry.NOME1; 
+                        if(entry.NOME2) card.querySelector('[data-field="n2"]') ? card.querySelector('[data-field="n2"]').value = entry.NOME2 : null;
+                        if(entry.OBSERVACAO) card.querySelector('[data-field="obs"]').value = entry.OBSERVACAO; 
+                    } 
+                });
+                
+                
+                alert(`Dados carregados para conferência. Clique em 'Salvar Lançamentos' quando terminar para finalizar esta pendência.`);
+            } else {
+                alert("Erro ao carregar pendência: Nenhuma TAG reconhecida.");
+            }
+        };
+
+        window.rejectSubmission = async (id) => { 
+            if(confirm("Tem certeza que deseja EXCLUIR esta pendência?")) {
+                try { await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/lancamentos_pendentes`, id)); } catch (error) { console.error(error); alert("Erro."); }
+            }
+        };
+        
+        window.openTagsModal = () => {
+            renderTagsList();
+            document.getElementById('modal-tags').classList.remove('hidden');
+        }
+
+        // OBS: A lista de tags no modal de tags deve refletir a lista geral, não a lista por linha.
+        window.renderTagsList = () => {
+            const container = document.getElementById('tags-list-content');
+            container.innerHTML = activeTags.map(tag => `
+                <div class="flex justify-between items-center p-2 border-b border-gray-100">
+                    <span class="font-bold text-slate-700">${tag}</span>
+                    <button onclick="removeTag('${tag}')" class="text-red-500 hover:text-red-700 px-2">🗑️</button>
+                </div>`).join('');
+        }
+
+        window.addTag = async () => {
+            const input = document.getElementById('new-tag-input');
+            const newTag = input.value.trim().toUpperCase();
+            if(!newTag) return;
+            if(activeTags.includes(newTag)) { alert("TAG já existe!"); return; }
+            const updatedList = [...activeTags, newTag].sort();
+            await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/config`, 'tags_list'), { list: updatedList });
+            input.value = ''; renderTagsList();
+        }
+
+        window.removeTag = async (tagToRemove) => {
+            if(confirm(`Deseja remover ${tagToRemove} da lista de ativos?`)) {
+                const updatedList = activeTags.filter(t => t !== tagToRemove);
+                await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/config`, 'tags_list'), { list: updatedList });
+                renderTagsList();
+            }
+        }
+        
+        function closeModal() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden')); }
+    </script>
+</head>
+<body class="flex h-screen overflow-hidden bg-slate-50">
+    <datalist id="colab-list"></datalist>
+
+    <!-- MODALS (mantidos) -->
+    <div id="modal-edit" class="modal-overlay fixed inset-0 z-[80] hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
+            <div class="flex justify-between mb-6"><h3 class="text-xl font-bold text-slate-800">Editar Lançamento</h3><button data-close-modal class="text-2xl">&times;</button></div>
+            <form id="edit-form" class="space-y-3">
+                <input type="hidden" id="edit-id"><div class="grid grid-cols-2 gap-4"><div><label class="text-xs font-bold text-gray-500">TAG</label><input id="edit-tag" class="input-field bg-gray-100" readonly></div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500">Equipamento</label>
+                    <script>
+                         document.write(`<select id="edit-equip" class="input-field"><option value="">Selecione...</option>${equipmentOptions}</select>`);
+                    </script>
+                </div></div>
+                <div><label class="text-xs font-bold text-gray-500">Status</label><select id="edit-status" class="input-field"><option>Em operação</option><option>Em reparo</option><option>Sem efetivo</option><option>TURNO 1</option><option>TURNO 3</option><option>FOLGA</option></select></div>
+                <div><label class="text-xs font-bold text-gray-500">Motorista</label><input id="edit-mot" list="colab-list" class="input-field"></div><div class="grid grid-cols-2 gap-4"><div><label class="text-xs font-bold text-gray-500">Nome 1</label><input id="edit-n1" list="colab-list" class="input-field"></div><div><label class="text-xs font-bold text-gray-500">Nome 2</label><input id="edit-n2" list="colab-list" class="input-field"></div></div>
+                <div><label class="text-xs font-bold text-gray-500">Observação</label><textarea id="edit-obs" class="input-field" rows="2"></textarea></div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 mt-2">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- NOVO MODAL: Editar Não Alocado -->
+    <div id="modal-edit-unallocated" class="modal-overlay fixed inset-0 z-[80] hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <div class="flex justify-between mb-6"><h3 class="text-xl font-bold text-slate-800">Editar Status da Equipe</h3><button data-close-modal class="text-2xl">&times;</button></div>
+            <form id="edit-unallocated-form" class="space-y-4">
+                <input type="hidden" id="edit-unallocated-id">
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4">
+                    <p class="text-xs text-gray-500 font-bold uppercase mb-1">Colaborador</p>
+                    <p id="edit-unallocated-name" class="text-lg font-bold text-slate-800">Nome</p>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500">Novo Status</label>
+                    <select id="edit-unallocated-status" class="input-field py-2">
+                        <!-- Opções preenchidas via JS -->
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 mt-2 shadow-lg">Salvar Status</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="modal-tags" class="modal-overlay fixed inset-0 z-[80] hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between mb-4 border-b pb-2"><h3 class="text-lg font-bold text-slate-800">Gerenciar Equipamentos</h3><button data-close-modal class="text-2xl">&times;</button></div>
+            <div class="flex gap-2 mb-4"><input type="text" id="new-tag-input" class="input-field uppercase" placeholder="Nova TAG (ex: MC99)"><button onclick="addTag()" class="bg-blue-600 text-white px-3 py-2 rounded font-bold hover:bg-blue-700">+</button></div>
+            <div id="tags-list-content" class="overflow-y-auto flex-1 custom-scroll space-y-1"></div>
+        </div>
+    </div>
+
+    <div id="modal-occ" class="modal-overlay fixed inset-0 z-[80] hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Nova Ocorrência</h3><p class="text-sm text-gray-500 mb-4">TAG: <span id="occ-tag" class="font-bold text-blue-600"></span></p>
+            <input type="hidden" id="occ-id"><label class="block text-xs font-bold text-gray-500 mb-1">Data e Hora</label><input type="datetime-local" id="occ-date" class="input-field mb-3 font-bold text-slate-700">
+            <label class="block text-xs font-bold text-gray-500 mb-1">Novo Status</label><select id="occ-status" class="input-field mb-3"><option value="">Selecione...</option><option>Em operação</option><option>Em reparo</option><option>Sem efetivo</option><option>Quebrado</option></select>
+            <label class="block text-xs font-bold text-gray-500 mb-1">Observação</label><textarea id="occ-obs" class="input-field mb-6" rows="3"></textarea>
+            <div class="flex justify-end gap-2"><button data-close-modal class="px-4 py-2 rounded text-slate-500 hover:bg-slate-100">Cancelar</button><button onclick="saveOccurrence()" class="px-4 py-2 rounded bg-yellow-500 text-white font-bold hover:bg-yellow-600 shadow-lg">Registrar</button></div>
+        </div>
+    </div>
+    <div id="modal-classify" class="modal-overlay fixed inset-0 z-[80] hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div class="p-4 border-b flex justify-between items-center bg-slate-50 rounded-t-xl"><h3 class="text-xl font-bold text-slate-800">Classificar Equipe (Não Alocados)</h3><button data-close-modal class="text-2xl">&times;</button></div>
+            <div class="p-4 overflow-y-auto flex-1 space-y-2 custom-scroll" id="classify-list"></div>
+            <div class="p-4 border-t bg-slate-50 rounded-b-xl text-right"><button onclick="saveClassify()" class="bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700 shadow">Salvar Classificação</button></div>
+        </div>
+    </div>
+    <div id="modal-detail" class="modal-overlay fixed inset-0 z-[80] hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col">
+            <div class="p-4 border-b flex justify-between items-center bg-slate-50 rounded-t-xl"><h3 id="detail-title" class="text-lg font-bold text-slate-800">Detalhes</h3><button data-close-modal class="text-2xl text-gray-400 hover:text-gray-600">&times;</button></div>
+            <div id="detail-content" class="overflow-y-auto flex-1 custom-scroll"></div>
+        </div>
+    </div>
+
+    <!-- BOTÃO DE TOGGLE (Sempre visível) -->
+    <div id="toggle-btn" class="toggle-button" onclick="toggleSidebar()">&#9776;</div>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar flex flex-col shadow-2xl">
+        <div class="h-20 flex items-center justify-center border-b border-slate-800">
+            <h1 class="text-2xl font-bold tracking-wider text-blue-400">MECANIZADA</h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <div id="btn-dash" class="nav-link active"><span class="mr-3">📊</span> Painel Geral</div>
+            <div id="btn-launch" class="nav-link"><span class="mr-3">📝</span> Lançar Dados</div>
+            <div id="btn-schedule" class="nav-link"><span class="mr-3">📅</span> Escala</div>
+            <!-- NOVO LINK -->
+            <div id="btn-info" class="nav-link"><span class="mr-3">ℹ️</span> Informações</div>
+        </nav>
+        <div id="sidebar-footer" class="hidden p-4 bg-slate-800 rounded-lg border border-slate-700 m-4">
+            <p class="text-xs text-slate-400 uppercase font-bold">Logado como</p>
+            <p id="user-name" class="font-bold text-white text-lg">Usuário</p>
+            <p id="user-role" class="text-xs text-blue-400 mb-3">Cargo</p>
+            <button id="logout-btn" class="w-full py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/50 rounded hover:bg-red-500 hover:text-white transition">Sair</button>
+        </div>
+        <div class="p-4 text-center text-xs text-slate-500 border-t border-slate-800">v5.7.7 Escala</div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content flex-1 h-full overflow-y-auto relative">
+        
+        <!-- DASHBOARD (mantido) -->
+        <div id="view-dashboard" class="app-view p-8 fade-in space-y-8 pb-24">
+            <header class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm sticky top-0 z-30">
+                <h2 class="text-2xl font-bold text-slate-800">Visão Geral</h2>
+                <div class="flex items-center gap-2"><label class="text-sm font-bold text-slate-500">Data:</label><input type="date" id="dashboard-date" class="bg-slate-100 border-none text-slate-700 font-bold rounded p-1 focus:ring-0"></div>
+            </header>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="card p-4 border-l-4 border-blue-500"><p class="text-xs text-gray-400 font-bold">TAGS APONTADAS</p><p id="kpi-total" class="text-3xl font-bold text-slate-800">0</p></div>
+                <div id="card-op" class="card card-interactive p-4 border-l-4 border-green-500"><p class="text-xs text-gray-400 font-bold">EM OPERAÇÃO</p><p id="kpi-op" class="text-3xl font-bold text-green-600">0</p></div>
+                <div id="card-rep" class="card card-interactive p-4 border-l-4 border-red-500"><p class="text-xs text-gray-400 font-bold">EM REPARO</p><p id="kpi-rep" class="text-3xl font-bold text-red-600">0</p></div>
+                <div id="card-sem" class="card card-interactive p-4 border-l-4 border-yellow-400"><p class="text-xs text-gray-400 font-bold">SEM EFETIVO</p><p id="kpi-sem" class="text-3xl font-bold text-yellow-600">0</p></div>
+                <!-- NOVO CARD: OUTROS -->
+                <div id="card-outros" class="card card-interactive p-4 border-l-4 border-gray-400">
+                    <p class="text-xs text-gray-400 font-bold">OUTROS STATUS</p>
+                    <p id="kpi-outros" class="text-3xl font-bold text-gray-600">0</p>
+                </div>
+            </div>
+            <div class="card p-4 bg-slate-800 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                <div><p class="text-xs text-slate-400 font-bold uppercase">Horas Paradas (Estimada)</p><p id="kpi-hours" class="text-2xl font-bold">0h 0m</p></div>
+                <div class="text-right mt-2 sm:mt-0"><p class="text-xs text-slate-400 font-bold uppercase">Eficiência Diária</p><p id="kpi-eff" class="text-2xl font-bold text-green-400">100%</p></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="card p-6 h-96 lg:col-span-1"><h3 class="font-bold text-slate-700 mb-4">Distribuição de Status</h3><div class="h-64"><canvas id="statusChart"></canvas></div></div>
+                <div class="card p-6 lg:col-span-2 flex flex-col">
+                    <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-700">Lista Diária</h3><button id="btn-export" class="bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-1 px-3 rounded shadow flex items-center"><span class="mr-1">📊</span> Baixar Excel</button></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 sticky top-0 text-xs text-gray-500 uppercase"><tr><th class="p-3">TAG</th><th class="p-3">Equip</th><th class="p-3">Status</th><th class="p-3">Motorista</th><th class="p-3">Ajudante 1</th><th class="p-3">Ajudante 2</th></tr></thead>
+                            <tbody id="dash-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div><h3 class="text-xl font-bold text-slate-800 mb-4">Status da Equipe (Não Alocados)</h3><div id="unallocated-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div></div>
+        </div>
+
+        <!-- ESCALA (mantida) -->
+        <div id="view-schedule" class="app-view hidden p-8 fade-in space-y-8 pb-24 flex-col">
+            <div class="bg-white p-2 rounded-xl border border-slate-200 shadow-sm sticky top-0 z-30 flex gap-2 mb-6">
+                <button data-target-schedule="schedule-month-view" class="schedule-tab-btn px-4 py-2 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition active">Visão Geral do Mês</button>
+                <button data-target-schedule="schedule-individual-search" class="schedule-tab-btn px-4 py-2 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition">Consulta Individual</button>
+            </div>
+            <div id="schedule-month-view" class="schedule-subview">
+                <header class="flex flex-wrap gap-4 items-center mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm w-full">
+                    <h2 class="text-xl font-bold text-slate-800 mr-4">Calendário de Escala 3x1</h2><select id="schedule-month-select" class="input-field w-48 font-bold"></select>
+                </header>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                    <div class="lg:col-span-2 flex flex-col" id="calendar-grid-container"><p class="text-center text-gray-400 py-8">Selecione o mês para carregar a escala.</p></div>
+                    <div class="lg:col-span-1 card shadow-xl h-full overflow-y-auto custom-scroll"><div id="schedule-details-content"><p class="text-center text-gray-400 p-6">Clique em uma data no calendário para ver os colaboradores escalados.</p></div></div>
+                </div>
+                <div class="mt-6 p-4 border border-slate-200 rounded-xl bg-white shadow-sm">
+                    <h4 class="font-bold text-slate-700 mb-2">Legenda de Equipes:</h4><span class="text-blue-700 font-bold mr-4">CMB (Combinado)</span><span class="text-red-600 font-bold">CND (Condensado)</span>
+                </div>
+            </div>
+            <div id="schedule-individual-search" class="schedule-subview hidden">
+                 <header class="flex flex-col md:flex-row justify-between items-center mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm sticky top-0 z-30 gap-4">
+                    <h2 class="text-2xl font-bold text-slate-800">Busca Individual por Colaborador</h2>
+                    <div class="flex items-center gap-2 w-full md:w-auto"><p class="text-sm font-bold text-slate-500">Mês:</p><select id="schedule-month-individual" class="input-field w-32 font-bold"></select></div>
+                </header>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                    <div class="lg:col-span-1 card shadow-lg p-4 overflow-y-auto custom-scroll max-h-[70vh]"><h3 class="font-bold text-slate-700 mb-4 border-b pb-2">Colaboradores de Turno</h3><div id="colaborator-list-view" class="space-y-1"></div></div>
+                    <div id="schedule-individual-results" class="lg:col-span-2 card p-6 min-h-[400px] flex flex-col items-center justify-center"><p class="text-gray-400 p-6 text-center">Selecione um colaborador ao lado para ver a escala.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGIN (mantido) -->
+        <div id="view-login" class="app-view hidden h-full flex items-center justify-center fade-in p-4">
+            <div class="card p-8 w-full max-w-sm text-center">
+                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">🔐</div>
+                <h2 class="text-xl font-bold text-slate-800 mb-6">Acesso Restrito</h2>
+                <form id="login-form" class="space-y-3"><input type="text" id="user" class="input-field text-center" placeholder="Usuário"><input type="password" id="pass" class="input-field text-center" placeholder="Senha"><button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition">Entrar</button></form>
+            </div>
+        </div>
+        
+        <!-- INFORMAÇÕES (NOVA ABA) -->
+        <div id="view-info" class="app-view hidden p-8 fade-in space-y-8 pb-24 flex-col">
+            <header class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm sticky top-0 z-30">
+                <h2 class="text-2xl font-bold text-slate-800">Informações e Estatísticas Estáticas</h2>
+                <p class="text-sm text-gray-500 mt-1">Dados fixos sobre a equipe e frota.</p>
+            </header>
+            <div id="info-content" class="flex-1">
+                <!-- Conteúdo renderizado via JS: Efetivo, Funções, Frota, Férias -->
+            </div>
+        </div>
+
+        <!-- ADMIN -->
+        <div id="view-admin" class="app-view hidden h-full flex flex-col fade-in">
+            <div class="bg-white border-b border-gray-200 p-4 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-40">
+                <h2 class="text-xl font-bold text-slate-800">Painel Admin</h2>
+                <div class="flex gap-2 bg-slate-100 p-1 rounded-lg">
+                    <!-- CORREÇÃO: Adicionado o onclick que chama a função de renderização -->
+                    <button class="admin-tab-btn active" data-target="admin-entry">Lançamento</button>
+                    <button class="admin-tab-btn" data-target="admin-approvals" onclick="renderApprovals()">Aprovações</button> 
+                    <button class="admin-tab-btn" data-target="admin-manage">Gerenciar</button>
+                </div>
+            </div>
+            <div class="p-6 pb-24 overflow-y-auto flex-1 custom-scroll">
+                <div id="admin-entry" class="admin-subview">
+                    <!-- Seleção de Linha para Admin -->
+                    <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
+                        <div class="flex items-center gap-2">
+                             <span class="font-bold text-sm text-slate-600">Data:</span>
+                             <input type="date" id="entry-date" class="input-field w-auto font-bold text-blue-900 bg-blue-50 border-blue-200">
+                        </div>
+                        <div class="flex gap-2">
+                             <button id="btn-line-amarela-admin" class="line-btn line-btn-yellow" data-line="AMARELA">
+                                 <!-- Ícone Mini-escavadeira (IMG) -->
+                                 <img src="uploaded:mini-escavadeira.png-47e1d813-eda6-4319-8688-b527af0b15d7" alt="Mini-escavadeira" class="w-6 h-6 mr-2 object-contain" onerror="this.onerror=null;this.src='https://placehold.co/24x24/FDE047/451A03?text=LA'">
+                                 LINHA AMARELA
+                             </button>
+                             <button id="btn-line-branca-admin" class="line-btn line-btn-white" data-line="BRANCA">
+                                 <!-- Ícone Caminhão (IMG) -->
+                                 <img src="uploaded:caminhao-tanque.png-e9994a22-0033-458e-950c-f5cea5e7df54" alt="Caminhão Tanque" class="w-6 h-6 mr-2 object-contain" onerror="this.onerror=null;this.src='https://placehold.co/24x24/E5E7EB/1F2937?text=LB'">
+                                 LINHA BRANCA
+                             </button>
+                        </div>
+                        <div class="flex gap-2 mt-2 md:mt-0 w-full md:w-auto justify-end">
+                             <button class="btn-manage-tags bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold text-sm hover:bg-slate-300 transition">⚙️ TAGs</button>
+                             <button id="btn-classify-team" class="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg font-bold text-sm hover:bg-purple-200 transition border border-purple-300">📋 Classificar Equipe</button>
+                        </div>
+                    </div>
+                    <!-- O grid de cards fica vazio até a seleção da linha -->
+                    <div id="admin-grid" class="tags-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <p class="text-center text-gray-400 py-24">Selecione a linha (Amarela/Branca) para carregar as TAGs.</p>
+                    </div>
+                    <div class="fixed bottom-6 right-6 z-50"><button id="btn-save-admin" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full shadow-xl transition transform hover:scale-105 flex items-center gap-2">💾 Salvar Lançamentos</button></div>
+                </div>
+                <div id="admin-approvals" class="admin-subview hidden"><h3 class="font-bold text-slate-700 mb-4">Pendências de Lançamento (Supervisor)</h3><div id="approval-list" class="grid gap-4 max-w-3xl mx-auto"></div></div>
+                <div id="admin-manage" class="admin-subview hidden">
+                    <div class="flex justify-between items-center mb-6"><h3 class="font-bold text-slate-700">Gerenciar Registros</h3><input type="date" id="manage-date" class="input-field w-auto"></div>
+                    <!-- Tabela de Operações -->
+                    <div class="card overflow-hidden mb-8"><h4 class="text-sm font-bold text-gray-500 uppercase p-4 border-b">Lançamentos de Operação</h4><table class="w-full text-left"><thead class="bg-slate-50 border-b"><tr><th class="p-3">TAG</th><th class="p-3">Status</th><th class="p-3">Motorista</th><th class="p-3 text-right">Ações</th></tr></thead><tbody id="manage-body" class="text-sm"></tbody></table></div>
+                    
+                    <!-- NOVA SEÇÃO: Tabela de Não Alocados -->
+                    <div class="card overflow-hidden"><h4 class="text-sm font-bold text-gray-500 uppercase p-4 border-b">Gerenciar Equipe (Não Alocados)</h4><table class="w-full text-left"><thead class="bg-slate-50 border-b"><tr><th class="p-3">Colaborador</th><th class="p-3">Status Atual</th><th class="p-3 text-right">Ações</th></tr></thead><tbody id="manage-unallocated-body" class="text-sm"></tbody></table></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUPERVISOR -->
+        <div id="view-supervisor" class="app-view hidden h-full flex flex-col fade-in pb-24">
+            <div class="p-4 bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm flex flex-col md:flex-row justify-between items-center gap-3">
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <h2 class="text-lg font-bold text-slate-800">Lançamento</h2>
+                    <button class="btn-manage-tags bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold hover:bg-blue-100">⚙️ TAGs</button>
+                </div>
+                <div class="flex gap-2 w-full md:w-auto">
+                     <button id="btn-line-amarela-supervisor" class="line-btn line-btn-yellow text-xs" data-line="AMARELA">
+                         <!-- Ícone Mini-escavadeira (IMG) -->
+                         <img src="uploaded:mini-escavadeira.png-47e1d813-eda6-4319-8688-b527af0b15d7" alt="Mini-escavadeira" class="w-5 h-5 mr-1 object-contain" onerror="this.onerror=null;this.src='https://placehold.co/20x20/FDE047/451A03?text=LA'">
+                         LINHA AMARELA
+                     </button>
+                     <button id="btn-line-branca-supervisor" class="line-btn line-btn-white text-xs" data-line="BRANCA">
+                         <!-- Ícone Caminhão (IMG) -->
+                         <img src="uploaded:caminhao-tanque.png-e9994a22-0033-458e-950c-f5cea5e7df54" alt="Caminhão Tanque" class="w-5 h-5 mr-1 object-contain" onerror="this.onerror=null;this.src='https://placehold.co/20x20/E5E7EB/1F2937?text=LB'">
+                         LINHA BRANCA
+                     </button>
+                </div>
+                <input type="date" id="supervisor-date" class="input-field w-auto py-1 text-xs font-bold bg-slate-50">
+            </div>
+            <div class="p-4 overflow-y-auto flex-1 custom-scroll">
+                <!-- O grid de cards fica vazio até a seleção da linha -->
+                <div id="supervisor-grid" class="tags-container flex flex-col gap-4 max-w-md mx-auto">
+                    <p class="text-center text-gray-400 py-24">Selecione a linha (Amarela/Branca) para carregar as TAGs.</p>
+                </div>
+            </div>
+            <div class="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto"><button id="btn-submit-supervisor" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg transition text-lg">🚀 Enviar para Aprovação</button></div>
+        </div>
+
+    </main>
+
+
+<!-- ======= INJEÇÃO: Sidebar de Classificação Rápida + Botão Lançar Tudo ======= -->
+<style>
+/* Sidebar direita para classificar rapidamente durante aprovações */
+#classify-sidebar {
+  position: fixed;
+  right: 0;
+  top: 72px;
+  width: 360px;
+  height: calc(100vh - 96px);
+  background: linear-gradient(180deg,#ffffff, #fbfdff);
+  border-left: 1px solid #e6eef8;
+  box-shadow: -6px 0 30px rgba(2,6,23,0.08);
+  z-index: 120;
+  padding: 16px;
+  overflow: auto;
+  transform: translateX(100%);
+  transition: transform 0.28s ease;
+  border-radius: 12px 0 0 12px;
+}
+#classify-sidebar.open { transform: translateX(0); }
+#classify-sidebar h4 { font-weight:700; margin-bottom:8px; color:#0f172a; }
+#classify-sidebar .mini-note { font-size:12px; color:#475569; margin-bottom:12px; }
+#classify-sidebar .classify-row { display:flex; gap:8px; align-items:center; padding:8px 6px; border-bottom:1px solid #f1f5f9; }
+#btn-launch-all { position: fixed; right: 24px; bottom: 86px; z-index:130; background: linear-gradient(90deg,#06b6d4,#3b82f6); color:white; padding:12px 18px; border-radius:999px; font-weight:800; box-shadow: 0 10px 25px rgba(59,130,246,0.18); border: none; cursor:pointer; }
+#btn-launch-all.hidden { display:none; }
+</style>
+
+<div id="classify-sidebar" aria-hidden="true" role="dialog" aria-label="Classificação Rápida">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <div>
+      <h4 id="classify-sidebar-title">Classificação Rápida</h4>
+      <div class="mini-note">Mostra pessoas não alocadas. Clique em salvar para persistir.</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeClassifySidebar()" title="Fechar" style="background:#fff;border:1px solid #e6eef8;padding:6px;border-radius:8px">✕</button>
+    </div>
+  </div>
+  <div id="classify-sidebar-list" style="min-height:80px"></div>
+  <div style="margin-top:12px;display:flex;gap:8px">
+    <button id="btn-classify-sidebar-save" class="bg-green-600 text-white px-4 py-2 rounded shadow-sm">💾 Salvar Classificação</button>
+    <button id="btn-classify-sidebar-auto" class="bg-slate-100 px-4 py-2 rounded">🔁 Auto por Escala</button>
+  </div>
+</div>
+
+<script>
+// ---------- Helpers (não alteram a lógica original) ----------
+function buildSidebarRow(name, team, currentStatus) {
+    const selOpts = ` + "`${listaStatusNaoAlocados.map(s=>`<option value=\"${s}\">${s}</option>`).join('')}`" + `;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'classify-row';
+    wrapper.innerHTML = `<div style="flex:1;font-weight:600;color:#0f172a">${name}${team?` <span style=\"font-weight:700;margin-left:6px;font-size:12px;background:#f1f5f9;padding:2px 6px;border-radius:6px;color:#0f172a\">EQ ${team}</span>`:''}</div>
+                         <select class="input-field classify-select-sidebar" data-name="${name}" style="width:140px">${selOpts}</select>`;
+    const sel = wrapper.querySelector('select');
+    if(currentStatus) {
+        sel.value = currentStatus;
+        if(currentStatus === 'Folga') sel.classList.add('border-green-200','bg-green-50');
+    }
+    return wrapper;
+}
+
+// Abre o sidebar com os mesmos dados do modal-classify (se presente)
+window.openClassifySidebar = () => {
+    // Prepara dados (reusa a lógica do modal)
+    const date = document.getElementById('entry-date')?.value?.split('-')?.reverse()?.join('/') || '';
+    // Garante que a lista modal já esteja atualizada, usa dados do banco e dos cards
+    openClassifyModal(); // ainda abre o modal para compatibilidade e popula os selects
+    // Agora popula sidebar com os mesmos selects porém em uma lista lateral
+    setTimeout(()=>{ // pequeno delay para garantir que modal foi populado
+        const sidebar = document.getElementById('classify-sidebar');
+        const list = document.getElementById('classify-sidebar-list');
+        list.innerHTML = '';
+        document.querySelectorAll('#classify-list .classify-select, #modal-classify .classify-select').forEach(orig => {
+            const name = orig.dataset.name || orig.getAttribute('data-name') || '';
+            const team = orig.dataset.team || orig.getAttribute('data-team') || '';
+            const current = orig.value || '';
+            const row = buildSidebarRow(name, team, current);
+            list.appendChild(row);
+        });
+        sidebar.classList.add('open');
+        document.getElementById('btn-launch-all')?.classList.remove('hidden');
+    }, 180);
+};
+
+window.closeClassifySidebar = () => {
+    document.getElementById('classify-sidebar').classList.remove('open');
+};
+
+// salva os selects do sidebar para o banco usando a mesma rotina do saveClassify (batch)
+document.getElementById('btn-classify-sidebar-save').onclick = async () => {
+    const selects = document.querySelectorAll('.classify-select-sidebar');
+    if(!selects.length) { alert('Nada para salvar.'); return; }
+    const batch = writeBatch(db);
+    const date = document.getElementById('entry-date')?.value.split('-').reverse().join('/');
+    selects.forEach(sel => {
+        const id = `${date.replace(/\//g,'')}_${sel.dataset.name.replace(/\s+/g,'_')}`;
+        const ref = doc(db, `artifacts/${__app_id}/users/${userId}/unallocated`, id);
+        batch.set(ref, { DATA: date, NOME: sel.dataset.name, STATUS: sel.value, timestamp: serverTimestamp() });
+    });
+    try { await batch.commit(); alert('Classificações salvas!'); closeClassifySidebar(); } catch(e){ console.error(e); alert('Erro ao salvar classificação.'); }
+};
+
+// auto-classify by schedule (sidebar)
+document.getElementById('btn-classify-sidebar-auto').onclick = () => {
+    const date = document.getElementById('entry-date')?.value.split('-').reverse().join('/');
+    document.querySelectorAll('.classify-select-sidebar').forEach(sel => {
+        const team = sel.dataset.team;
+        if(team) {
+            const expected = getExpectedStatusForDate(team, date);
+            sel.value = expected;
+            if(expected === 'Folga') sel.classList.add('border-green-200','bg-green-50');
+            else sel.classList.remove('border-green-200','bg-green-50');
+        }
+    });
+};
+
+// ---------- Lançar Tudo: Salva os lançamentos visíveis e as classificações em sequência ----------
+function ensureSaveClassifyReturnsPromise() {
+    // Se saveClassify já existe e retorna Promise, ok. Caso contrário, wrapear em função que retorna Promise.
+    if(window.saveClassify && window.saveClassify.constructor.name === 'AsyncFunction') return;
+    // Wrap older implementation (if it doesn't return) - not likely but safe
+    const old = window.saveClassify;
+    window.saveClassify = async function() {
+        return new Promise((resolve, reject)=>{
+            try {
+                const maybe = old();
+                // se old é promise
+                if(maybe && maybe.then) { maybe.then(resolve).catch(reject); }
+                else resolve();
+            } catch(e) { reject(e); }
+        });
+    };
+}
+
+window.launchAll = async () => {
+    if(!confirm('Executar Lançar Tudo? Isso salvará os lançamentos visíveis e as classificações feitas à direita.')) return;
+    try {
+        // 1) Salva lançamentos admin
+        await saveAdminData();
+        // 2) Se houver selects no sidebar, salva eles também
+        const selects = document.querySelectorAll('.classify-select-sidebar');
+        if(selects.length) {
+            // garante que saveClassify seja promise-based
+            ensureSaveClassifyReturnsPromise();
+            // copia os valores do sidebar para selects 'classify-select' (modal) para reusar lógica
+            selects.forEach(s => {
+                // procura select correspondente no modal; se não existir, cria um temporário
+                let target = document.querySelector(`#classify-list select[data-name="${s.dataset.name}"]`);
+                if(!target) {
+                    // cria entry temporária no modal-list container
+                    const container = document.getElementById('classify-list');
+                    if(container) {
+                        const div = document.createElement('div');
+                        div.innerHTML = `<select class="classify-select" data-name="${s.dataset.name}" data-team="${s.dataset.team}"></select>`;
+                        container.appendChild(div);
+                        target = container.querySelector(`select[data-name="${s.dataset.name}"]`);
+                        // fill options
+                        if(target) { target.innerHTML = s.innerHTML; }
+                    }
+                }
+                if(target) target.value = s.value;
+            });
+            // chama a rotina existente
+            await saveClassify();
+        }
+        alert('Lançamento e classificação concluídos!');
+        closeClassifySidebar();
+    } catch (err) {
+        console.error(err);
+        alert('Erro durante o processo de Lançar Tudo. Verifique o console.');
+    }
+};
+
+// Adiciona botão "Lançar Tudo" ao carregar a página, ao lado do botão salvar existente.
+document.addEventListener('DOMContentLoaded', ()=> {
+    try {
+        const existing = document.getElementById('btn-save-admin');
+        if(existing) {
+            const btn = document.createElement('button');
+            btn.id = 'btn-launch-all';
+            btn.innerText = '🚀 Lançar Tudo';
+            btn.className = 'hidden';
+            btn.onclick = window.launchAll;
+            document.body.appendChild(btn);
+        }
+        // Atalho: quando admin carrega uma pendência para revisão, abre o sidebar automaticamente
+        const origReview = window.reviewSubmission;
+        if(origReview && typeof origReview === 'function') {
+            window.reviewSubmission = function(id) {
+                origReview(id);
+                // pequena espera para garantir que cards foram carregados
+                setTimeout(()=> {
+                    openClassifySidebar();
+                }, 400);
+            }
+        }
+    } catch(e){ console.error('Erro ao inicializar Lançar Tudo/sidebar', e); }
+});
+</script>
+<!-- ======= FIM INJEÇÃO ======= -->
+
+</body>
+</html>
